@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Davila's Autos Detailing — Davila's Marketing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../negocios/business.css" />
+</head>
+<body>
+
+  <nav class="biz-nav">
+    <a href="../../Pagina principal/index.html" class="biz-nav-logo">
+      <span class="logo-main">DAVILA'S</span>
+      <span class="logo-sub">Marketing</span>
+    </a>
+    <a href="../../Pagina principal/index.html#businesses" class="biz-nav-back">← Back to Businesses</a>
+  </nav>
+
+  <section class="biz-hero" id="bizHero"></section>
+
+  <div class="biz-layout">
+    <div>
+      <div class="biz-content-card" style="margin-bottom:24px;">
+        <h2>About</h2>
+        <p id="bizDescription"></p>
+      </div>
+      <div id="bizGallery"></div>
+      <div id="bizReviews" style="margin-top:24px;"></div>
+    </div>
+    <div class="biz-sidebar">
+      <div id="bizInfo"></div>
+      <div id="bizServices"></div>
+    </div>
+  </div>
+
+  <footer class="biz-footer">
+    <p>Powered by <a href="../../Pagina principal/index.html">Davila's Marketing</a> &nbsp;|&nbsp; &copy;2025 All rights reserved.</p>
+  </footer>
+
+  <script>
+    window.BIZ_CONFIG = {
+      name:        "Davila's Autos Detailing",
+      category:    'Auto Detailing',
+      description: "Premium auto detailing services that restore your vehicle's shine and protect its finish. We use professional-grade products and techniques to deliver showroom-quality results every time.",
+      phone:       '+1 (234) 567-890',
+      email:       'contact@davilasautos.com',
+      address:     'Your City, Country',
+      website:     'https://davilasautos.com',
+      hours:       'Mon–Sat: 8am – 6pm',
+      heroImage:   'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=400&q=80',
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
+      ],
+      services: [
+        'Full Interior Detailing',
+        'Exterior Wash & Wax',
+        'Paint Correction',
+        'Ceramic Coating',
+        'Engine Bay Cleaning',
+        'Headlight Restoration',
+      ],
+      reviews: [
+        { name: 'Mike T.',    stars: 5, text: 'My car looks brand new! Amazing attention to detail.' },
+        { name: 'Jessica R.', stars: 5, text: 'Best detailing service in town. Will definitely come back.' },
+      ],
+    };
+  </script>
+  <script src="../../negocios/business.js"></script>
+
+</body>
+</html>
