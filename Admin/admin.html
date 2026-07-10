@@ -16,90 +16,204 @@
       <span class="logo-sub">Admin Panel</span>
     </div>
     <nav class="sidebar-nav">
-      <a href="#" class="nav-item active" data-section="businesses">🏢 Businesses</a>
+      <a href="#" class="nav-item active">🏢 Businesses</a>
       <a href="../Pagina principal/index.html" class="nav-item" target="_blank">🌐 View Site</a>
     </nav>
   </aside>
 
   <!-- MAIN -->
   <main class="admin-main">
-
-    <!-- HEADER -->
     <header class="admin-header">
       <h1>Businesses</h1>
       <button class="btn-add" id="btnAdd">+ Add Business</button>
     </header>
-
-    <!-- BUSINESSES LIST -->
     <section id="businessesList" class="businesses-list"></section>
-
   </main>
 
-  <!-- MODAL: ADD / EDIT BUSINESS -->
+  <!-- MODAL -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
+
       <div class="modal-header">
         <h2 id="modalTitle">Add Business</h2>
         <button class="modal-close" id="modalClose">✕</button>
       </div>
 
+      <!-- TABS -->
+      <div class="form-tabs">
+        <button class="tab-btn active" data-tab="basic">📋 Basic Info</button>
+        <button class="tab-btn" data-tab="contact">📞 Contact</button>
+        <button class="tab-btn" data-tab="media">🖼️ Media</button>
+        <button class="tab-btn" data-tab="services">⚙️ Services</button>
+      </div>
+
       <form id="bizForm" class="biz-form">
         <input type="hidden" id="bizIndex" value="-1" />
 
-        <div class="form-grid">
+        <!-- TAB: BASIC INFO -->
+        <div class="tab-panel active" id="tab-basic">
           <div class="form-group">
             <label>Business Name *</label>
             <input type="text" id="bizName" placeholder="e.g. Davila's Autos Detailing" required />
           </div>
+
           <div class="form-group">
             <label>Category *</label>
-            <input type="text" id="bizCategory" placeholder="e.g. Auto Detailing" required />
+            <div class="select-wrapper">
+              <select id="bizCategory" required>
+                <option value="">— Select a category —</option>
+                <option value="Auto Detailing">🚗 Auto Detailing</option>
+                <option value="Restaurant">🍽️ Restaurant</option>
+                <option value="Fashion">👗 Fashion & Clothing</option>
+                <option value="Technology">💻 Technology</option>
+                <option value="Health & Beauty">💆 Health & Beauty</option>
+                <option value="Fitness">🏋️ Fitness & Gym</option>
+                <option value="Real Estate">🏠 Real Estate</option>
+                <option value="Legal">⚖️ Legal Services</option>
+                <option value="Education">📚 Education</option>
+                <option value="Photography">📷 Photography</option>
+                <option value="Construction">🔨 Construction</option>
+                <option value="Finance">💰 Finance</option>
+                <option value="Other">📦 Other</option>
+              </select>
+            </div>
+            <!-- Custom category input (shown when "Other" is selected) -->
+            <input type="text" id="bizCategoryCustom" placeholder="Enter custom category..." style="display:none; margin-top:8px;" />
           </div>
-          <div class="form-group full">
-            <label>Description *</label>
-            <textarea id="bizDescription" rows="3" placeholder="Short description of the business..." required></textarea>
-          </div>
+
           <div class="form-group">
-            <label>Phone</label>
-            <input type="text" id="bizPhone" placeholder="+1 (234) 567-890" />
+            <label>Short Description * <span class="hint">shown on the main page card</span></label>
+            <textarea id="bizDescription" rows="3" placeholder="Brief description of what this business offers..." required></textarea>
+            <span class="char-count" id="descCount">0 / 160</span>
           </div>
+
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="bizEmail" placeholder="contact@business.com" />
+            <label>Full Description <span class="hint">shown on the business page</span></label>
+            <textarea id="bizDescriptionFull" rows="5" placeholder="Detailed description with history, mission, what makes them unique..."></textarea>
           </div>
+
           <div class="form-group">
-            <label>Address</label>
-            <input type="text" id="bizAddress" placeholder="City, Country" />
+            <label>Business Status</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="bizStatus" value="active" checked /> Active
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="bizStatus" value="inactive" /> Inactive
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="bizStatus" value="featured" /> ⭐ Featured
+              </label>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Business Hours</label>
-            <input type="text" id="bizHours" placeholder="Mon–Fri: 9am – 6pm" />
+        </div>
+
+        <!-- TAB: CONTACT -->
+        <div class="tab-panel" id="tab-contact">
+          <div class="form-row">
+            <div class="form-group">
+              <label>📞 Phone</label>
+              <input type="text" id="bizPhone" placeholder="+1 (234) 567-890" />
+            </div>
+            <div class="form-group">
+              <label>✉️ Email</label>
+              <input type="email" id="bizEmail" placeholder="contact@business.com" />
+            </div>
           </div>
+
           <div class="form-group">
-            <label>Website URL</label>
-            <input type="url" id="bizWebsite" placeholder="https://yourbusiness.com" />
+            <label>📍 Address</label>
+            <input type="text" id="bizAddress" placeholder="123 Main St, City, Country" />
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>🕐 Business Hours</label>
+              <input type="text" id="bizHours" placeholder="Mon–Fri: 9am – 6pm" />
+            </div>
+            <div class="form-group">
+              <label>🌐 Website URL</label>
+              <input type="url" id="bizWebsite" placeholder="https://yourbusiness.com" />
+            </div>
+          </div>
+
+          <div class="form-section-title">Social Media</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Facebook</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">f</span>
+                <input type="url" id="bizFacebook" placeholder="https://facebook.com/..." />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Instagram</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">📸</span>
+                <input type="url" id="bizInstagram" placeholder="https://instagram.com/..." />
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>WhatsApp</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">💬</span>
+                <input type="text" id="bizWhatsapp" placeholder="+1 (234) 567-890" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>TikTok</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">🎵</span>
+                <input type="url" id="bizTiktok" placeholder="https://tiktok.com/@..." />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: MEDIA -->
+        <div class="tab-panel" id="tab-media">
           <div class="form-group">
-            <label>Hero Image URL</label>
+            <label>Hero Image URL <span class="hint">main banner image</span></label>
             <input type="url" id="bizHeroImage" placeholder="https://..." />
+            <div class="img-preview" id="heroPreview"></div>
           </div>
-          <div class="form-group full">
-            <label>Services <span class="hint">(one per line)</span></label>
-            <textarea id="bizServices" rows="4" placeholder="Full Interior Detailing&#10;Exterior Wash & Wax&#10;Paint Correction"></textarea>
+
+          <div class="form-section-title">Gallery Images</div>
+          <div class="gallery-input-row">
+            <input type="url" id="galleryUrlInput" placeholder="Paste image URL and press Add →" />
+            <button type="button" class="btn-add-img" id="btnAddGallery">Add</button>
           </div>
-          <div class="form-group full">
-            <label>Gallery Images <span class="hint">(one URL per line)</span></label>
-            <textarea id="bizGallery" rows="4" placeholder="https://image1.jpg&#10;https://image2.jpg"></textarea>
+          <div class="gallery-preview" id="galleryPreview"></div>
+          <input type="hidden" id="bizGallery" />
+        </div>
+
+        <!-- TAB: SERVICES -->
+        <div class="tab-panel" id="tab-services">
+          <div class="form-section-title">Services Offered</div>
+          <div class="tag-input-row">
+            <input type="text" id="serviceInput" placeholder="Type a service and press Enter or Add →" />
+            <button type="button" class="btn-add-tag" id="btnAddService">Add</button>
           </div>
+          <div class="tags-container" id="servicesTags"></div>
+          <input type="hidden" id="bizServices" />
+
+          <div class="form-section-title" style="margin-top:28px;">Customer Reviews</div>
+          <div id="reviewsList"></div>
+          <button type="button" class="btn-add-review" id="btnAddReview">+ Add Review</button>
+          <input type="hidden" id="bizReviews" />
         </div>
 
         <div class="form-actions">
           <button type="button" class="btn-cancel" id="btnCancel">Cancel</button>
-          <button type="submit" class="btn-save">Save Business</button>
+          <button type="submit" class="btn-save">💾 Save Business</button>
         </div>
       </form>
     </div>
   </div>
+
+  <div class="toast" id="toast"></div>
 
   <script src="admin.js"></script>
 </body>
