@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Business — Davila's Marketing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="negocio.css" />
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="../Pagina principal/index.html" class="nav-logo">
+      <span class="logo-main">DAVILA'S</span>
+      <span class="logo-sub">Marketing</span>
+    </a>
+    <a href="../Pagina principal/index.html#businesses" class="nav-back">← Back</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <img class="hero-bg" id="heroBg" src="" alt="" />
+    <div class="hero-overlay">
+      <span class="hero-tag" id="heroTag"></span>
+      <h1 id="heroName"></h1>
+      <div class="hero-meta" id="heroMeta"></div>
+    </div>
+  </section>
+
+  <!-- BODY -->
+  <div class="page-body">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-main">
+
+      <div class="card" id="cardAbout">
+        <h2 class="card-title">About</h2>
+        <p id="bizDescription">Loading…</p>
+      </div>
+
+      <div class="card hidden" id="cardGallery">
+        <h2 class="card-title">Gallery</h2>
+        <div class="gallery" id="bizGallery"></div>
+      </div>
+
+      <div class="card hidden" id="cardReviews">
+        <h2 class="card-title">Reviews</h2>
+        <div id="bizReviews"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <aside class="col-side">
+
+      <!-- CONTACT CARD -->
+      <div class="contact-card" id="contactCard">
+        <div class="contact-header">
+          <span class="contact-icon">📬</span>
+          <h3>Contact</h3>
+        </div>
+        <div class="contact-rows" id="contactRows"></div>
+        <div class="contact-actions" id="contactActions"></div>
+      </div>
+
+      <!-- SOCIAL -->
+      <div class="social-card hidden" id="socialCard">
+        <h3>Follow Us</h3>
+        <div class="social-bubbles" id="socialLinks"></div>
+      </div>
+
+      <!-- SERVICES -->
+      <div class="card hidden" id="servicesCard">
+        <h2 class="card-title">Services</h2>
+        <ul class="services-list" id="bizServices"></ul>
+      </div>
+
+      <!-- MAP -->
+      <div class="map-card hidden" id="mapCard">
+        <h3 class="map-title">Location</h3>
+        <div id="bizMap"></div>
+      </div>
+
+    </aside>
+  </div>
+
+  <footer class="footer">
+    Powered by <a href="../Pagina principal/index.html">Davila's Marketing</a> · © 2025
+  </footer>
+
+  <!-- Lightbox -->
+  <div class="lightbox hidden" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <img id="lightboxImg" src="" alt="" />
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="negocio.js"></script>
+</body>
+</html>

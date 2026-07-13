@@ -1,11 +1,7 @@
 // =============================================
-// DAVILA'S MARKETING — Admin Panel JS
+// DAVILA'S MARKETING — Admin Panel JS (Supabase)
 // =============================================
-
-const STORAGE_KEY = 'davilas_businesses';
-
-function getBusinesses() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-function saveBusinesses(list) { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
+import { supabase } from './supabase-client.js';
 
 // ── TABS ──
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -23,7 +19,7 @@ function resetTabs() {
 }
 
 // ── CHAR COUNTER ──
-const descEl = document.getElementById('bizDescription');
+const descEl  = document.getElementById('bizDescription');
 const countEl = document.getElementById('descCount');
 descEl.addEventListener('input', () => {
   const n = descEl.value.length;
@@ -31,15 +27,33 @@ descEl.addEventListener('input', () => {
   countEl.classList.toggle('warn', n > 160);
 });
 
-// ── HERO IMAGE PREVIEW ──
-document.getElementById('bizHeroImage').addEventListener('input', function () {
+// ── HERO IMAGE UPLOAD ──
+document.getElementById('bizHeroFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
   const preview = document.getElementById('heroPreview');
-  preview.innerHTML = this.value
-    ? `<img src="${this.value}" alt="Hero preview" onerror="this.parentElement.innerHTML='<p style=color:#e53e3e;font-size:.8rem>Invalid image URL</p>'" />`
-    : '';
+  preview.innerHTML = '<p style="color:#aaa;font-size:.8rem">Uploading...</p>';
+  const url = await uploadImage(file);
+  if (url) {
+    document.getElementById('bizHeroImage').value = url;
+    preview.innerHTML = `<img src="${url}" alt="Hero preview" />`;
+  } else {
+    preview.innerHTML = '<p style="color:#e53e3e;font-size:.8rem">Upload failed</p>';
+  }
 });
 
-// ── GALLERY ──
+async function uploadImage(file) {
+  const ext  = file.name.split('.').pop();
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const { data, error } = await supabase
+    .storage.from('negocios-imagenes')
+    .upload(path, file, { upsert: true });
+  if (error) { console.error(error); return null; }
+  const { data: { publicUrl } } = supabase.storage.from('negocios-imagenes').getPublicUrl(path);
+  return publicUrl;
+}
+
+// ── GALLERY UPLOAD ──
 let galleryUrls = [];
 
 function renderGalleryPreview() {
@@ -53,13 +67,17 @@ function renderGalleryPreview() {
 
 window.removeGalleryImg = (i) => { galleryUrls.splice(i, 1); renderGalleryPreview(); };
 
-document.getElementById('btnAddGallery').addEventListener('click', () => {
-  const input = document.getElementById('galleryUrlInput');
-  const url = input.value.trim();
-  if (url) { galleryUrls.push(url); input.value = ''; renderGalleryPreview(); }
-});
-document.getElementById('galleryUrlInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnAddGallery').click(); }
+document.getElementById('btnAddGallery').addEventListener('click', async () => {
+  const files = document.getElementById('galleryFileInput').files;
+  if (!files.length) return;
+  document.getElementById('btnAddGallery').textContent = 'Uploading...';
+  for (const file of files) {
+    const url = await uploadImage(file);
+    if (url) galleryUrls.push(url);
+  }
+  document.getElementById('galleryFileInput').value = '';
+  document.getElementById('btnAddGallery').textContent = 'Upload';
+  renderGalleryPreview();
 });
 
 // ── SERVICE TAGS ──
@@ -109,32 +127,87 @@ document.getElementById('btnAddReview').addEventListener('click', () => {
   renderReviews();
 });
 
-// ── CATEGORY: show custom input when "Other" ──
+// ── SOCIAL NETWORKS (dynamic) ──
+const SOCIAL_OPTIONS = [
+  { key: 'facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/...' },
+  { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...' },
+  { key: 'whatsapp',  label: 'WhatsApp',  placeholder: '+1 (234) 567-890' },
+  { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@...' },
+  { key: 'youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/...' },
+  { key: 'twitter',   label: 'X / Twitter', placeholder: 'https://x.com/...' },
+  { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/...' },
+  { key: 'snapchat',  label: 'Snapchat',  placeholder: 'https://snapchat.com/add/...' },
+  { key: 'pinterest', label: 'Pinterest', placeholder: 'https://pinterest.com/...' },
+];
+let socials = {}; // { facebook: 'url', instagram: 'url', ... }
+
+function renderSocials() {
+  const container = document.getElementById('socialNetworks');
+  const used = Object.keys(socials);
+  container.innerHTML = used.map(key => {
+    const opt = SOCIAL_OPTIONS.find(o => o.key === key);
+    return `
+    <div class="social-row" data-key="${key}">
+      <span class="social-row-label">${opt?.label || key}</span>
+      <input type="text" value="${socials[key]}" placeholder="${opt?.placeholder || ''}" 
+             onchange="socials['${key}']=this.value;syncSocials()" />
+      <button type="button" onclick="removeSocial('${key}')">✕</button>
+    </div>`;
+  }).join('');
+  syncSocials();
+}
+
+function syncSocials() { document.getElementById('bizSocials').value = JSON.stringify(socials); }
+window.removeSocial = (key) => { delete socials[key]; renderSocials(); };
+
+document.getElementById('btnAddSocial').addEventListener('click', () => {
+  const available = SOCIAL_OPTIONS.filter(o => !socials[o.key]);
+  if (!available.length) return;
+  const opts = available.map(o => `<option value="${o.key}">${o.label}</option>`).join('');
+  const sel = document.createElement('select');
+  sel.innerHTML = opts;
+  sel.className = 'social-picker';
+  sel.addEventListener('change', () => {
+    socials[sel.value] = '';
+    sel.remove();
+    renderSocials();
+  });
+  document.getElementById('btnAddSocial').insertAdjacentElement('beforebegin', sel);
+  sel.focus();
+});
 document.getElementById('bizCategory').addEventListener('change', function () {
   document.getElementById('bizCategoryCustom').style.display = this.value === 'Other' ? 'block' : 'none';
 });
 
 // ── RENDER BUSINESS LIST ──
-function renderList() {
-  const list = getBusinesses();
+async function renderList() {
   const container = document.getElementById('businessesList');
-  if (!list.length) {
+  container.innerHTML = `<div class="empty-state"><span>⏳</span>Loading...</div>`;
+
+  const { data, error } = await supabase.from('negocios').select('*').order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<div class="empty-state"><span>❌</span>Error: ${error.message}</div>`;
+    return;
+  }
+  if (!data.length) {
     container.innerHTML = `<div class="empty-state"><span>🏢</span>No businesses yet. Click "+ Add Business" to get started.</div>`;
     return;
   }
-  container.innerHTML = list.map((b, i) => `
+
+  container.innerHTML = data.map(b => `
     <div class="biz-admin-card">
-      ${b.heroImage
-        ? `<img class="biz-admin-card-img" src="${b.heroImage}" alt="${b.name}" onerror="this.style.display='none'" />`
+      ${b.hero_image
+        ? `<img class="biz-admin-card-img" src="${b.hero_image}" alt="${b.name}" onerror="this.style.display='none'" />`
         : `<div class="biz-admin-card-img-placeholder">🏢</div>`}
       <div class="biz-admin-card-body">
-        <span class="tag">${b.category}</span>
+        <span class="tag">${b.category || ''}</span>
         <h3>${b.name}</h3>
-        <p>${b.description}</p>
+        <p>${b.description || ''}</p>
         <div class="biz-admin-card-actions">
-          <button class="btn-edit" onclick="openEdit(${i})">✏️ Edit</button>
+          <button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Edit</button>
           <a class="btn-view" href="../negocios/${slugify(b.name)}/index.html" target="_blank">🔗</a>
-          <button class="btn-delete" onclick="deleteBusiness(${i})">🗑️</button>
+          <button class="btn-delete" onclick="deleteBusiness('${b.id}')">🗑️</button>
         </div>
       </div>
     </div>`).join('');
@@ -144,36 +217,46 @@ function renderList() {
 function openAdd() {
   document.getElementById('modalTitle').textContent = 'Add Business';
   document.getElementById('bizForm').reset();
-  document.getElementById('bizIndex').value = -1;
+  document.getElementById('bizIndex').value = '';
   document.getElementById('bizCategoryCustom').style.display = 'none';
   document.getElementById('heroPreview').innerHTML = '';
   galleryUrls = []; renderGalleryPreview();
   serviceTags = []; renderServiceTags();
   reviews = []; renderReviews();
+  socials = {}; renderSocials();
   resetTabs();
   document.getElementById('modalOverlay').classList.add('open');
 }
 
-window.openEdit = (i) => {
-  const b = getBusinesses()[i];
+window.openEdit = async (id) => {
+  const { data: b, error } = await supabase.from('negocios').select('*').eq('id', id).single();
+  if (error) { showToast('Error loading business'); return; }
+
   document.getElementById('modalTitle').textContent = 'Edit Business';
-  document.getElementById('bizIndex').value = i;
+  document.getElementById('bizIndex').value          = b.id;
   document.getElementById('bizName').value           = b.name             || '';
   document.getElementById('bizDescription').value    = b.description      || '';
-  document.getElementById('bizDescriptionFull').value= b.descriptionFull  || '';
+  document.getElementById('bizDescriptionFull').value= b.description_full || '';
   document.getElementById('bizPhone').value          = b.phone            || '';
   document.getElementById('bizEmail').value          = b.email            || '';
   document.getElementById('bizAddress').value        = b.address          || '';
-  document.getElementById('bizHours').value          = b.hours            || '';
-  document.getElementById('bizWebsite').value        = b.website          || '';
-  document.getElementById('bizFacebook').value       = b.facebook         || '';
-  document.getElementById('bizInstagram').value      = b.instagram        || '';
-  document.getElementById('bizWhatsapp').value       = b.whatsapp         || '';
-  document.getElementById('bizTiktok').value         = b.tiktok           || '';
-  document.getElementById('bizHeroImage').value      = b.heroImage        || '';
+  document.getElementById('bizMapsUrl').value         = b.maps_url         || '';
+  document.getElementById('bizHours').value           = b.hours            || '';
+  document.getElementById('bizWebsite').value         = b.website          || '';
+  document.getElementById('bizHeroImage').value       = b.hero_image       || '';
   document.getElementById('bizCategoryCustom').style.display = 'none';
 
-  // Category
+  // Socials
+  socials = b.socials ? JSON.parse(JSON.stringify(b.socials)) : {};
+  // migrate old fields if present
+  if (!Object.keys(socials).length) {
+    if (b.facebook)  socials.facebook  = b.facebook;
+    if (b.instagram) socials.instagram = b.instagram;
+    if (b.whatsapp)  socials.whatsapp  = b.whatsapp;
+    if (b.tiktok)    socials.tiktok    = b.tiktok;
+  }
+  renderSocials();
+
   const catSelect = document.getElementById('bizCategory');
   const knownCats = Array.from(catSelect.options).map(o => o.value);
   if (knownCats.includes(b.category)) {
@@ -184,25 +267,17 @@ window.openEdit = (i) => {
     document.getElementById('bizCategoryCustom').style.display = 'block';
   }
 
-  // Status
   document.querySelectorAll('input[name="bizStatus"]').forEach(r => { r.checked = r.value === (b.status || 'active'); });
 
-  // Hero preview
-  document.getElementById('heroPreview').innerHTML = b.heroImage
-    ? `<img src="${b.heroImage}" alt="Hero preview" />` : '';
+  document.getElementById('heroPreview').innerHTML = b.hero_image
+    ? `<img src="${b.hero_image}" alt="Hero preview" />` : '';
+  document.getElementById('bizHeroFile').value = '';
 
-  // Gallery
-  galleryUrls = b.gallery || []; renderGalleryPreview();
-
-  // Services
+  galleryUrls = b.gallery  || []; renderGalleryPreview();
   serviceTags = b.services || []; renderServiceTags();
+  reviews     = b.reviews  ? JSON.parse(JSON.stringify(b.reviews)) : []; renderReviews();
 
-  // Reviews
-  reviews = b.reviews ? JSON.parse(JSON.stringify(b.reviews)) : []; renderReviews();
-
-  // Char count
   countEl.textContent = `${b.description?.length || 0} / 160`;
-
   resetTabs();
   document.getElementById('modalOverlay').classList.add('open');
 };
@@ -210,52 +285,53 @@ window.openEdit = (i) => {
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 
 // ── SAVE ──
-document.getElementById('bizForm').addEventListener('submit', e => {
+document.getElementById('bizForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const list  = getBusinesses();
-  const index = parseInt(document.getElementById('bizIndex').value);
+  const id = document.getElementById('bizIndex').value;
   const catSelect = document.getElementById('bizCategory');
   const category = catSelect.value === 'Other'
     ? document.getElementById('bizCategoryCustom').value.trim()
     : catSelect.value;
 
   const biz = {
-    name:            document.getElementById('bizName').value.trim(),
+    name:             document.getElementById('bizName').value.trim(),
     category,
-    description:     document.getElementById('bizDescription').value.trim(),
-    descriptionFull: document.getElementById('bizDescriptionFull').value.trim(),
-    phone:           document.getElementById('bizPhone').value.trim(),
-    email:           document.getElementById('bizEmail').value.trim(),
-    address:         document.getElementById('bizAddress').value.trim(),
-    hours:           document.getElementById('bizHours').value.trim(),
-    website:         document.getElementById('bizWebsite').value.trim(),
-    facebook:        document.getElementById('bizFacebook').value.trim(),
-    instagram:       document.getElementById('bizInstagram').value.trim(),
-    whatsapp:        document.getElementById('bizWhatsapp').value.trim(),
-    tiktok:          document.getElementById('bizTiktok').value.trim(),
-    heroImage:       document.getElementById('bizHeroImage').value.trim(),
-    gallery:         galleryUrls,
-    services:        serviceTags,
-    reviews:         reviews,
-    status:          document.querySelector('input[name="bizStatus"]:checked')?.value || 'active',
-    date:            index === -1
-      ? new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-      : (list[index]?.date || ''),
+    description:      document.getElementById('bizDescription').value.trim(),
+    description_full: document.getElementById('bizDescriptionFull').value.trim(),
+    phone:            document.getElementById('bizPhone').value.trim(),
+    email:            document.getElementById('bizEmail').value.trim(),
+    address:          document.getElementById('bizAddress').value.trim(),
+    maps_url:         document.getElementById('bizMapsUrl').value.trim(),
+    hours:            document.getElementById('bizHours').value.trim(),
+    website:          document.getElementById('bizWebsite').value.trim(),
+    socials:          socials,
+    hero_image:       document.getElementById('bizHeroImage').value.trim(),
+    gallery:          galleryUrls,
+    services:         serviceTags,
+    reviews:          reviews,
+    status:           document.querySelector('input[name="bizStatus"]:checked')?.value || 'active',
   };
 
-  if (index === -1) { list.push(biz); } else { list[index] = biz; }
-  saveBusinesses(list);
+  let error;
+  if (!id) {
+    biz.date = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    ({ error } = await supabase.from('negocios').insert(biz));
+  } else {
+    ({ error } = await supabase.from('negocios').update(biz).eq('id', id));
+  }
+
+  if (error) { showToast('❌ Error: ' + error.message); return; }
+
   closeModal();
   renderList();
-  showToast(index === -1 ? '✓ Business added' : '✓ Business updated');
+  showToast(!id ? '✓ Business added' : '✓ Business updated');
 });
 
 // ── DELETE ──
-window.deleteBusiness = (i) => {
+window.deleteBusiness = async (id) => {
   if (!confirm('Delete this business?')) return;
-  const list = getBusinesses();
-  list.splice(i, 1);
-  saveBusinesses(list);
+  const { error } = await supabase.from('negocios').delete().eq('id', id);
+  if (error) { showToast('❌ Error: ' + error.message); return; }
   renderList();
   showToast('Business deleted');
 };

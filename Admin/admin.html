@@ -122,8 +122,14 @@
           </div>
 
           <div class="form-group">
-            <label>📍 Address</label>
+            <label>📍 Address <span class="hint">name only, or paste Google Maps link below</span></label>
             <input type="text" id="bizAddress" placeholder="123 Main St, City, Country" />
+          </div>
+
+          <div class="form-group">
+            <label>🗺️ Google Maps Embed URL <span class="hint">optional — shows interactive map</span></label>
+            <input type="url" id="bizMapsUrl" placeholder="https://www.google.com/maps/embed?pb=..." />
+            <p class="hint" style="margin-top:6px">💡 Google Maps → Share → <strong>Embed a map</strong> → copia el URL del atributo <code>src="..."</code></p>
           </div>
 
           <div class="form-row">
@@ -138,52 +144,26 @@
           </div>
 
           <div class="form-section-title">Social Media</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Facebook</label>
-              <div class="input-icon-wrap">
-                <span class="input-icon">f</span>
-                <input type="url" id="bizFacebook" placeholder="https://facebook.com/..." />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Instagram</label>
-              <div class="input-icon-wrap">
-                <span class="input-icon">📸</span>
-                <input type="url" id="bizInstagram" placeholder="https://instagram.com/..." />
-              </div>
-            </div>
+          <div id="socialNetworks">
+            <!-- rows added dynamically -->
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>WhatsApp</label>
-              <div class="input-icon-wrap">
-                <span class="input-icon">💬</span>
-                <input type="text" id="bizWhatsapp" placeholder="+1 (234) 567-890" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>TikTok</label>
-              <div class="input-icon-wrap">
-                <span class="input-icon">🎵</span>
-                <input type="url" id="bizTiktok" placeholder="https://tiktok.com/@..." />
-              </div>
-            </div>
-          </div>
+          <button type="button" class="btn-add-tag" id="btnAddSocial" style="margin-top:8px">+ Add Social Network</button>
+          <input type="hidden" id="bizSocials" />
         </div>
 
         <!-- TAB: MEDIA -->
         <div class="tab-panel" id="tab-media">
           <div class="form-group">
-            <label>Hero Image URL <span class="hint">main banner image</span></label>
-            <input type="url" id="bizHeroImage" placeholder="https://..." />
+            <label>Hero Image <span class="hint">main banner image</span></label>
+            <input type="file" id="bizHeroFile" accept="image/*" />
             <div class="img-preview" id="heroPreview"></div>
+            <input type="hidden" id="bizHeroImage" />
           </div>
 
           <div class="form-section-title">Gallery Images</div>
           <div class="gallery-input-row">
-            <input type="url" id="galleryUrlInput" placeholder="Paste image URL and press Add →" />
-            <button type="button" class="btn-add-img" id="btnAddGallery">Add</button>
+            <input type="file" id="galleryFileInput" accept="image/*" multiple />
+            <button type="button" class="btn-add-img" id="btnAddGallery">Upload</button>
           </div>
           <div class="gallery-preview" id="galleryPreview"></div>
           <input type="hidden" id="bizGallery" />
@@ -215,6 +195,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="admin.js"></script>
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
