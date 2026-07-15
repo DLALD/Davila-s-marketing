@@ -107,7 +107,7 @@ async function loadArticles() {
     .limit(3);
 
   if (error || !data || !data.length) {
-    grid.innerHTML = '<p style="color:#aaa;text-align:center;grid-column:1/-1">No articles published yet.</p>';
+    grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1">No articles published yet.</p>';
     return;
   }
 

@@ -130,6 +130,9 @@
             <label>🗺️ Google Maps Embed URL <span class="hint">optional — shows interactive map</span></label>
             <input type="url" id="bizMapsUrl" placeholder="https://www.google.com/maps/embed?pb=..." />
             <p class="hint" style="margin-top:6px">💡 Google Maps → Share → <strong>Embed a map</strong> → copia el URL del atributo <code>src="..."</code></p>
+            <div id="mapsPreviewWrap" style="display:none;margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid #334155;">
+              <iframe id="mapsPreviewFrame" src="" width="100%" height="220" style="border:none;display:block;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
           </div>
 
           <div class="form-row">
@@ -166,6 +169,26 @@
 
         <!-- TAB: MEDIA -->
         <div class="tab-panel" id="tab-media">
+
+          <div class="compress-panel">
+            <div class="form-section-title" style="margin-bottom:14px">🗜️ Image Compression</div>
+            <label class="radio-label" style="margin-bottom:14px">
+              <input type="checkbox" id="compressEnabled" checked /> Auto-compress before upload
+            </label>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Max Width <span class="hint">reduce si es mayor</span></label>
+                <input type="range" id="compressMaxW" min="400" max="2400" step="100" value="1400" />
+                <div class="char-count" id="compressMaxWVal">1400px</div>
+              </div>
+              <div class="form-group">
+                <label>Quality <span class="hint">calidad JPEG</span></label>
+                <input type="range" id="compressQuality" min="30" max="100" value="82" />
+                <div class="char-count" id="compressQualityVal">82%</div>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label>Hero Image <span class="hint">main banner image</span></label>
             <input type="file" id="bizHeroFile" accept="image/*" />
@@ -182,6 +205,31 @@
             <label>Hero Height — Mobile</label>
             <input type="range" id="bizHeroHeightMobile" min="200" max="800" value="360" />
             <div class="char-count" id="heroHeightMobileVal">360px</div>
+          </div>
+          <div class="form-group">
+            <label>Hero Width — Desktop <span class="hint">% del ancho de la página</span></label>
+            <input type="range" id="bizHeroWidthDesktop" min="40" max="100" value="100" />
+            <div class="char-count" id="heroWidthDesktopVal">100%</div>
+          </div>
+          <div class="form-group">
+            <label>Hero Width — Mobile <span class="hint">% del ancho de la página</span></label>
+            <input type="range" id="bizHeroWidthMobile" min="40" max="100" value="100" />
+            <div class="char-count" id="heroWidthMobileVal">100%</div>
+          </div>
+          <div class="form-group">
+            <label>🔍 Hero Image Zoom <span class="hint">zoom de la imagen del hero (100% = sin zoom)</span></label>
+            <input type="range" id="bizHeroZoom" min="50" max="200" value="100" />
+            <div class="char-count" id="heroZoomVal">100%</div>
+          </div>
+          <div class="form-group">
+            <label>🖼️ Hero Image Fit <span class="hint">cómo se ajusta la imagen al hero</span></label>
+            <div class="select-wrapper">
+              <select id="bizHeroFit">
+                <option value="cover">Cover — recorta para llenar (default)</option>
+                <option value="contain">Contain — imagen completa sin recortar</option>
+                <option value="fill">Fill — estira para llenar</option>
+              </select>
+            </div>
           </div>
           <input type="hidden" id="bizHeroSettings" />
 

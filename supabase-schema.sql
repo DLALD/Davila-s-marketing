@@ -13,14 +13,13 @@ CREATE TABLE IF NOT EXISTS negocios (
   phone            TEXT,
   email            TEXT,
   address          TEXT,
+  maps_url         TEXT,
   hours            TEXT,
   website          TEXT,
-  facebook         TEXT,
-  instagram        TEXT,
-  whatsapp         TEXT,
-  tiktok           TEXT,
   logo_url         TEXT,
   hero_image       TEXT,
+  hero_settings    JSONB DEFAULT '{}'::jsonb,
+  socials          JSONB DEFAULT '{}'::jsonb,
   gallery          JSONB DEFAULT '[]',
   services         JSONB DEFAULT '[]',
   reviews          JSONB DEFAULT '[]',
@@ -29,8 +28,10 @@ CREATE TABLE IF NOT EXISTS negocios (
   created_at       TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE negocios ADD COLUMN IF NOT EXISTS logo_url TEXT;
+-- Migraciones para tablas existentes
+ALTER TABLE negocios ADD COLUMN IF NOT EXISTS maps_url TEXT;
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS hero_settings JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE negocios ADD COLUMN IF NOT EXISTS socials JSONB DEFAULT '{}'::jsonb;
 
 -- ── TABLA: clientes (logos en el banner) ──
 CREATE TABLE IF NOT EXISTS clientes (

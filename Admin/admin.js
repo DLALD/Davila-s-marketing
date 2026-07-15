@@ -42,16 +42,46 @@ document.getElementById('bizHeroFile').addEventListener('change', async function
   }
 });
 
+async function compressImage(file) {
+  const enabled = document.getElementById('compressEnabled')?.checked ?? true;
+  if (!enabled) return file;
+  const maxW    = parseInt(document.getElementById('compressMaxW')?.value    || 1400, 10);
+  const quality = parseInt(document.getElementById('compressQuality')?.value || 82,   10) / 100;
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxW / img.width);
+      const w = Math.round(img.width  * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 async function uploadImage(file) {
-  const ext  = file.name.split('.').pop();
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const blob = await compressImage(file);
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
   const { data, error } = await supabase
     .storage.from('negocios-imagenes')
-    .upload(path, file, { upsert: true });
+    .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
   if (error) { console.error(error); return null; }
   const { data: { publicUrl } } = supabase.storage.from('negocios-imagenes').getPublicUrl(path);
   return publicUrl;
 }
+
+document.getElementById('compressMaxW')?.addEventListener('input', e => {
+  document.getElementById('compressMaxWVal').textContent = e.target.value + 'px';
+});
+document.getElementById('compressQuality')?.addEventListener('input', e => {
+  document.getElementById('compressQualityVal').textContent = e.target.value + '%';
+});
 
 // ── GALLERY UPLOAD ──
 let galleryUrls = [];
@@ -130,24 +160,55 @@ document.getElementById('btnAddReview').addEventListener('click', () => {
 // Hero height inputs behavior
 const heroDesktopInput = document.getElementById('bizHeroHeightDesktop');
 const heroMobileInput  = document.getElementById('bizHeroHeightMobile');
+const heroWidthDesktopInput = document.getElementById('bizHeroWidthDesktop');
+const heroWidthMobileInput  = document.getElementById('bizHeroWidthMobile');
+const heroZoomInput         = document.getElementById('bizHeroZoom');
+
+function getHeroSettings() {
+  return {
+    desktop:      parseInt(heroDesktopInput?.value || 620, 10),
+    mobile:       parseInt(heroMobileInput?.value  || 360, 10),
+    widthDesktop: parseInt(heroWidthDesktopInput?.value || 100, 10),
+    widthMobile:  parseInt(heroWidthMobileInput?.value  || 100, 10),
+    zoom:         parseInt(heroZoomInput?.value || 100, 10),
+    fit:          document.getElementById('bizHeroFit')?.value || 'cover',
+  };
+}
+function syncHeroSettings() {
+  document.getElementById('bizHeroSettings').value = JSON.stringify(getHeroSettings());
+}
+
 if (heroDesktopInput) {
   heroDesktopInput.addEventListener('input', e => {
     document.getElementById('heroHeightDesktopVal').textContent = e.target.value + 'px';
-    document.getElementById('bizHeroSettings').value = JSON.stringify({
-      desktop: parseInt(heroDesktopInput.value, 10),
-      mobile: parseInt(heroMobileInput ? heroMobileInput.value : 360, 10)
-    });
+    syncHeroSettings();
   });
 }
 if (heroMobileInput) {
   heroMobileInput.addEventListener('input', e => {
     document.getElementById('heroHeightMobileVal').textContent = e.target.value + 'px';
-    document.getElementById('bizHeroSettings').value = JSON.stringify({
-      desktop: parseInt(heroDesktopInput ? heroDesktopInput.value : 620, 10),
-      mobile: parseInt(heroMobileInput.value, 10)
-    });
+    syncHeroSettings();
   });
 }
+if (heroWidthDesktopInput) {
+  heroWidthDesktopInput.addEventListener('input', e => {
+    document.getElementById('heroWidthDesktopVal').textContent = e.target.value + '%';
+    syncHeroSettings();
+  });
+}
+if (heroWidthMobileInput) {
+  heroWidthMobileInput.addEventListener('input', e => {
+    document.getElementById('heroWidthMobileVal').textContent = e.target.value + '%';
+    syncHeroSettings();
+  });
+}
+if (heroZoomInput) {
+  heroZoomInput.addEventListener('input', e => {
+    document.getElementById('heroZoomVal').textContent = e.target.value + '%';
+    syncHeroSettings();
+  });
+}
+document.getElementById('bizHeroFit')?.addEventListener('change', syncHeroSettings);
 
 // ── SOCIAL NETWORKS (dynamic) ──
 const SOCIAL_OPTIONS = [
@@ -211,6 +272,42 @@ window.removeSocial = (key) => { delete socials[key]; renderSocials(); };
 document.getElementById('bizCategory').addEventListener('change', function () {
   document.getElementById('bizCategoryCustom').style.display = this.value === 'Other' ? 'block' : 'none';
 });
+
+// ── MAPS PREVIEW ──
+function normalizeMapsUrl(raw) {
+  let url = raw.trim();
+  const srcMatch = url.match(/src=["']([^"']+)["']/);
+  if (srcMatch) url = srcMatch[1];
+  url = url.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+  const makeEmbed = q => `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
+  const isEmbed  = u => u.includes('/maps/embed') || u.includes('output=embed');
+  if (!url || url.length < 8) return '';
+  if (isEmbed(url)) return url;
+  try {
+    const p = new URL(url.startsWith('http') ? url : `https://${url}`);
+    if (p.searchParams.has('q'))    return makeEmbed(p.searchParams.get('q'));
+    if (p.searchParams.has('pb'))   return `https://www.google.com/maps/embed?pb=${p.searchParams.get('pb')}`;
+    const place = p.pathname.match(/\/maps\/place\/([^\/]+)/);
+    if (place) return makeEmbed(decodeURIComponent(place[1].replace(/\+/g,' ')));
+    const at = p.pathname.match(/@(-?\d+\.\d+,-?\d+\.\d+)/);
+    if (at) return makeEmbed(at[1]);
+    return makeEmbed(url);
+  } catch { return makeEmbed(url); }
+}
+
+(function() {
+  let debounce;
+  document.getElementById('bizMapsUrl').addEventListener('input', function () {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const src = normalizeMapsUrl(this.value);
+      const wrap  = document.getElementById('mapsPreviewWrap');
+      const frame = document.getElementById('mapsPreviewFrame');
+      if (src) { frame.src = src; wrap.style.display = 'block'; }
+      else     { frame.src = '';  wrap.style.display = 'none';  }
+    }, 800);
+  });
+})();
 
 document.getElementById('bizLogoFile').addEventListener('change', async function () {
   const file = this.files[0];
@@ -296,7 +393,13 @@ window.openEdit = async (id) => {
   document.getElementById('bizPhone').value          = b.phone            || '';
   document.getElementById('bizEmail').value          = b.email            || '';
   document.getElementById('bizAddress').value        = b.address          || '';
-  document.getElementById('bizMapsUrl').value         = b.maps_url         || '';
+  document.getElementById('bizMapsUrl').value = b.maps_url || '';
+  // maps preview
+  const mapsPreviewSrc = normalizeMapsUrl(b.maps_url || '');
+  const mapsWrap = document.getElementById('mapsPreviewWrap');
+  const mapsFrame = document.getElementById('mapsPreviewFrame');
+  if (mapsPreviewSrc) { mapsFrame.src = mapsPreviewSrc; mapsWrap.style.display = 'block'; }
+  else                { mapsFrame.src = '';             mapsWrap.style.display = 'none';  }
   document.getElementById('bizHours').value           = b.hours            || '';
   document.getElementById('bizWebsite').value         = b.website          || '';
   document.getElementById('bizLogoUrl').value         = b.logo_url        || '';
@@ -334,12 +437,20 @@ window.openEdit = async (id) => {
     ? `<img src="${b.logo_url}" alt="Logo preview" />` : '';
   document.getElementById('bizLogoFile').value = '';
 
-  // hero settings (desktop/mobile height)
+  // hero settings (desktop/mobile height + width)
   const heroSettings = b.hero_settings || {};
   document.getElementById('bizHeroHeightDesktop').value = heroSettings.desktop || 620;
   document.getElementById('heroHeightDesktopVal').textContent = (heroSettings.desktop || 620) + 'px';
   document.getElementById('bizHeroHeightMobile').value = heroSettings.mobile || 360;
   document.getElementById('heroHeightMobileVal').textContent = (heroSettings.mobile || 360) + 'px';
+  document.getElementById('bizHeroWidthDesktop').value = heroSettings.widthDesktop || 100;
+  document.getElementById('heroWidthDesktopVal').textContent = (heroSettings.widthDesktop || 100) + '%';
+  document.getElementById('bizHeroWidthMobile').value = heroSettings.widthMobile || 100;
+  document.getElementById('heroWidthMobileVal').textContent = (heroSettings.widthMobile || 100) + '%';
+  document.getElementById('bizHeroZoom').value = heroSettings.zoom || 100;
+  document.getElementById('heroZoomVal').textContent = (heroSettings.zoom || 100) + '%';
+  const fitEl = document.getElementById('bizHeroFit');
+  if (fitEl) fitEl.value = heroSettings.fit || 'cover';
   document.getElementById('bizHeroSettings').value = JSON.stringify(heroSettings || {});
 
   galleryUrls = b.gallery  || []; renderGalleryPreview();

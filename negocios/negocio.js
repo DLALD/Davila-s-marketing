@@ -13,6 +13,15 @@ async function loadBusiness() {
 
   document.title = `${b.name} — Davila's Marketing`;
 
+  // Hero settings (height + width)
+  const hs = b.hero_settings || {};
+  if (hs.desktop)      document.documentElement.style.setProperty('--hero-height-desktop', hs.desktop + 'px');
+  if (hs.mobile)       document.documentElement.style.setProperty('--hero-height-mobile',  hs.mobile  + 'px');
+  if (hs.widthDesktop) document.documentElement.style.setProperty('--hero-width-desktop',  hs.widthDesktop + '%');
+  if (hs.widthMobile)  document.documentElement.style.setProperty('--hero-width-mobile',   hs.widthMobile  + '%');
+  if (hs.zoom)         document.documentElement.style.setProperty('--hero-zoom',            hs.zoom / 100);
+  if (hs.fit)          document.documentElement.style.setProperty('--hero-fit',             hs.fit);
+
   // Hero
   if (b.hero_image) {
     document.getElementById('heroBg').src = b.hero_image;

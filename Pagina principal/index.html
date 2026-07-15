@@ -11,57 +11,79 @@
 
   <!-- NAV -->
   <nav class="navbar">
-    <div class="nav-logo">
+    <a href="#" class="nav-logo">
       <span class="logo-text">DAVILA'S</span>
       <span class="logo-sub">Marketing</span>
-    </div>
+    </a>
     <ul class="nav-links">
       <li><a href="#services">Services</a></li>
       <li><a href="#businesses">Businesses</a></li>
       <li><a href="#testimonials">Testimonials</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
-    <a href="#contact" class="btn-primary">GET STARTED →</a>
+    <a href="#contact" class="btn-primary" style="margin-left:auto">GET STARTED →</a>
     <button class="hamburger" id="hamburger">☰</button>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
     <div class="hero-content">
-      <h1>Marketing Agency<br />for Every Business</h1>
-      <p>We take your local or online business to the next level with effective digital strategies.</p>
+      <p class="hero-subtitle">Digital Marketing Agency</p>
+      <h1>We <span>Develop</span><br />Your Business</h1>
+      <p>Effective digital strategies for local and online businesses. Web design, SEO, social media and more.</p>
       <div class="hero-btns">
         <a href="#contact" class="btn-primary">CONTACT US →</a>
-        <a href="#services" class="btn-outline">OUR SERVICES →</a>
+        <a href="#services" class="btn-outline-light">OUR SERVICES</a>
       </div>
     </div>
     <div class="hero-img">
-      <div class="hero-img-frame">
-        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&q=80" alt="Equipo Davila's Marketing" />
-      </div>
-      <div class="hero-dot hero-dot-1"></div>
-      <div class="hero-dot hero-dot-2"></div>
+      <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=900&q=70" alt="Business" />
+      <div class="hero-img-overlay"></div>
     </div>
+    <div class="hero-divider"></div>
   </section>
+
+  <!-- INFO BAR -->
+  <div class="info-bar">
+    <div class="info-bar-item">
+      <div class="info-bar-icon">📞</div>
+      <div><strong>Call Us</strong><br />+1 (234) 567-890</div>
+    </div>
+    <div class="info-bar-item">
+      <div class="info-bar-icon">✉️</div>
+      <div><strong>Email Us</strong><br />hello@davilasmarketing.com</div>
+    </div>
+    <div class="info-bar-item">
+      <div class="info-bar-icon">🕐</div>
+      <div><strong>Working Hours</strong><br />Mon – Fri: 9am – 6pm</div>
+    </div>
+    <div class="info-bar-item">
+      <div class="info-bar-icon">📍</div>
+      <div><strong>Location</strong><br />Your City, Country</div>
+    </div>
+  </div>
 
   <!-- CLIENTES BANNER -->
   <section class="clients-banner">
     <p class="clients-title">Businesses that trust us</p>
-    <div class="clients-track" id="clientsTrack">
-      <!-- Se llena dinámicamente desde Supabase -->
-    </div>
+    <div class="clients-track" id="clientsTrack"></div>
   </section>
 
   <!-- MISIÓN -->
   <section class="mission">
     <div class="mission-img">
-      <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=500&q=80" alt="Misión" />
+      <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80" alt="Mission" />
     </div>
     <div class="mission-text">
-      <span class="label">OUR MISSION</span>
+      <span class="label">Our Mission</span>
       <h2>Partner with Our Agency to Reach Your Goals</h2>
       <p>Whether you need social media marketing, web design, or SEO, our mission is to help you achieve your goals through analysis and collaboration.</p>
       <p>We develop comprehensive digital marketing strategies, implementing every detail with precision to grow your business.</p>
+      <div class="mission-stats">
+        <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Clients Served</span></div>
+        <div class="stat"><span class="stat-num">3x</span><span class="stat-label">Avg. Growth</span></div>
+        <div class="stat"><span class="stat-num">5★</span><span class="stat-label">Avg. Rating</span></div>
+      </div>
     </div>
   </section>
 
@@ -69,7 +91,7 @@
   <section class="services" id="services">
     <div class="services-header">
       <div>
-        <span class="label">OUR SERVICES</span>
+        <span class="label">Our Services</span>
         <h2>We Offer Affordable Marketing Services</h2>
       </div>
       <a href="#contact" class="btn-outline">VIEW ALL →</a>
@@ -79,7 +101,7 @@
         <span class="service-num">01</span>
         <div class="service-icon">🖥️</div>
         <h3>Web Design & Maintenance</h3>
-        <p>We build modern, fast, and optimized websites that represent your brand and convert visitors into customers.</p>
+        <p>Modern, fast, and optimized websites that represent your brand and convert visitors into customers.</p>
         <a href="#contact" class="service-link">EXPLORE →</a>
       </div>
       <div class="service-card">
@@ -96,7 +118,7 @@
         <p>We improve your Google ranking so more customers can find your business organically.</p>
         <a href="#contact" class="service-link">EXPLORE →</a>
       </div>
-      <div class="service-card service-card-dark">
+      <div class="service-card">
         <span class="service-num">04</span>
         <div class="service-icon">📱</div>
         <h3>Social Media & Advertising</h3>
@@ -106,10 +128,15 @@
     </div>
   </section>
 
-  <!-- NEGOCIOS DESTACADOS (desde Supabase) -->
+  <!-- NEGOCIOS -->
   <section class="businesses" id="businesses">
-    <span class="label">FEATURED BUSINESSES</span>
-    <h2>Meet Our Clients</h2>
+    <div class="businesses-head">
+      <div>
+        <span class="label">Featured Businesses</span>
+        <h2>Meet Our Clients</h2>
+      </div>
+      <a href="#contact" class="btn-outline">VIEW ALL →</a>
+    </div>
     <div class="businesses-grid" id="businessesGrid">
       <div class="loading-spinner">Loading businesses...</div>
     </div>
@@ -118,21 +145,13 @@
   <!-- TESTIMONIOS -->
   <section class="testimonials" id="testimonials">
     <div class="testimonials-imgs">
-      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&q=80" alt="Client" class="testi-img testi-img-top" />
-      <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&q=80" alt="Client" class="testi-img testi-img-bottom" />
-      <div class="testi-dot"></div>
+      <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=70" alt="Client" />
+      <div class="testimonials-imgs-overlay"></div>
     </div>
     <div class="testimonials-content">
-      <span class="label">TESTIMONIALS</span>
+      <span class="label-light">Testimonials</span>
       <h2>What Our Clients Say</h2>
-      <div class="testi-card" id="testiCard">
-        <div class="testi-avatar">M</div>
-        <div>
-          <p class="testi-name">María G.</p>
-          <div class="stars">★★★★★</div>
-          <p class="testi-text">"Davila's Marketing transformó completamente mi presencia en línea. En 3 meses duplicamos las ventas de mi restaurante."</p>
-        </div>
-      </div>
+      <div class="testi-card" id="testiCard"></div>
       <div class="testi-nav">
         <button onclick="prevTesti()">‹</button>
         <button onclick="nextTesti()">›</button>
@@ -142,31 +161,31 @@
 
   <!-- ARTÍCULOS -->
   <section class="articles">
-    <span class="label-light">FEATURED RESOURCES</span>
-    <h2>Read Our Latest Articles</h2>
-    <div class="articles-grid" id="articlesGrid">
-      <!-- Se llena dinámicamente desde Supabase -->
+    <div class="articles-head">
+      <div>
+        <span class="label">Featured Resources</span>
+        <h2>Read Our Latest Articles</h2>
+      </div>
+      <a href="#" class="btn-outline">VIEW ALL →</a>
     </div>
-    <a href="#" class="btn-outline-light">VIEW ALL RESOURCES →</a>
+    <div class="articles-grid" id="articlesGrid"></div>
   </section>
 
   <!-- CTA -->
   <section class="cta">
     <div>
-      <span class="label-light">CONTACT US TODAY</span>
-      <h2>Take Your Local or Online Business to the Next Level</h2>
+      <h2><span>Contact Us Today</span>Take Your Business to the Next Level</h2>
     </div>
     <a href="#contact" class="btn-light">GET STARTED →</a>
-    <div class="cta-circle"></div>
   </section>
 
   <!-- FOOTER -->
   <footer class="footer" id="contact">
     <div class="footer-brand">
-      <div class="nav-logo">
+      <a href="#" class="nav-logo" style="text-decoration:none">
         <span class="logo-text">DAVILA'S</span>
         <span class="logo-sub">Marketing</span>
-      </div>
+      </a>
       <p>Digital marketing agency focused on growing local and online businesses with effective and affordable strategies.</p>
       <div class="social-links">
         <a href="#">f</a>
@@ -176,26 +195,24 @@
       </div>
     </div>
     <div class="footer-links">
-      <h4>QUICK LINKS</h4>
+      <h4>Quick Links</h4>
       <a href="#services">Our Services</a>
       <a href="#businesses">Businesses</a>
       <a href="#testimonials">Testimonials</a>
       <a href="#contact">Contact</a>
     </div>
     <div class="footer-contact">
-      <h4>CONTACT</h4>
+      <h4>Contact</h4>
       <p>📞 <a href="tel:+1234567890">+1 (234) 567-890</a></p>
       <p>✉️ <a href="mailto:hello@davilasmarketing.com">hello@davilasmarketing.com</a></p>
       <p>📍 Your City, Country</p>
     </div>
   </footer>
   <div class="footer-bottom">
-    <p>©2025 Davila's Marketing. All rights reserved.</p>
+    <p>© 2025 Davila's Marketing. All rights reserved.</p>
   </div>
 
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Businesses Registry -->
   <script src="../negocios/businesses-registry.js"></script>
   <script src="index.js"></script>
 </body>
