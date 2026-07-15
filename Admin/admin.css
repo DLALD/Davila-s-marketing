@@ -304,17 +304,20 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   transition: border-color .2s;
 }
 .service-icon-btn:hover { border-color: var(--blue); }
+.service-icon-btn img { width: 24px; height: 24px; object-fit: contain; }
 .service-icon-dropdown {
   position: absolute; top: 50px; left: 0; z-index: 50;
   background: #0f1b33; border: 1px solid var(--border); border-radius: 10px;
-  padding: 10px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
-  width: 220px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  padding: 10px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+  width: 260px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
 }
 .service-icon-dropdown span {
   font-size: 1.3rem; cursor: pointer; padding: 6px;
   border-radius: 6px; text-align: center;
   transition: background .15s;
+  display: flex; align-items: center; justify-content: center;
 }
+.service-icon-dropdown span img { width: 22px; height: 22px; object-fit: contain; }
 .service-icon-dropdown span:hover { background: rgba(74,159,255,.2); }
 .service-icon-dropdown.hidden { display: none; }
 .btn-add-tag {
@@ -328,6 +331,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   background: rgba(26,111,212,.1); color: var(--blue);
   padding: 6px 12px; border-radius: 20px; font-size: 0.88rem; font-weight: 600;
 }
+.service-tag img { width: 18px; height: 18px; object-fit: contain; }
 .service-tag button {
   background: none; border: none; color: var(--blue); cursor: pointer;
   font-size: 0.9rem; line-height: 1; padding: 0; opacity: .7;

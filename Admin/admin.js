@@ -3,6 +3,24 @@
 // =============================================
 import { supabase } from './supabase-client.js';
 
+// ── SITE ICONS (carpeta "Logos de la pagina", hermana de /admin y /negocios) ──
+const ICONS_PATH = '../Logos de la pagina/';
+const SITE_ICONS = [
+  { key: 'apoyo',                label: 'Apoyo' },
+  { key: 'carro',                label: 'Carro' },
+  { key: 'conexion',             label: 'Conexión' },
+  { key: 'estadisticas',         label: 'Estadísticas' },
+  { key: 'flecha-izquierda',     label: 'Flecha Izquierda' },
+  { key: 'lavado-de-coches',     label: 'Lavado de Coches' },
+  { key: 'llamada-telefonica',   label: 'Llamada Telefónica' },
+  { key: 'mapas-de-google',      label: 'Mapas de Google' },
+  { key: 'marcador-de-posicion', label: 'Marcador de Posición' },
+  { key: 'spray',                label: 'Spray' },
+];
+const SITE_ICON_KEYS = SITE_ICONS.map(i => i.key);
+function iconSrc(key) { return `${ICONS_PATH}${key}.png`; }
+function iconImg(key, alt = '') { return `<img src="${iconSrc(key)}" alt="${alt}" />`; }
+
 // ── TABS ──
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -112,7 +130,14 @@ document.getElementById('btnAddGallery').addEventListener('click', async () => {
 
 // ── SERVICE TAGS ──
 let serviceTags = [];
-let selectedServiceIcon = '🔧';
+let selectedServiceIcon = SITE_ICONS[0].key;
+
+// Populate the icon dropdown with the real icon files (from "Logos de la pagina")
+const serviceIconDropdownEl = document.getElementById('serviceIconDropdown');
+serviceIconDropdownEl.innerHTML = SITE_ICONS.map(ic =>
+  `<span data-icon="${ic.key}" title="${ic.label}">${iconImg(ic.key, ic.label)}</span>`
+).join('');
+document.getElementById('serviceIconBtn').innerHTML = iconImg(selectedServiceIcon);
 
 // Icon picker toggle
 document.getElementById('serviceIconBtn').addEventListener('click', (e) => {
@@ -120,10 +145,10 @@ document.getElementById('serviceIconBtn').addEventListener('click', (e) => {
   document.getElementById('serviceIconDropdown').classList.toggle('hidden');
 });
 document.getElementById('serviceIconDropdown').addEventListener('click', (e) => {
-  const icon = e.target.dataset.icon;
+  const icon = e.target.closest('[data-icon]')?.dataset.icon;
   if (!icon) return;
   selectedServiceIcon = icon;
-  document.getElementById('serviceIconBtn').textContent = icon;
+  document.getElementById('serviceIconBtn').innerHTML = iconImg(icon);
   document.getElementById('serviceIconDropdown').classList.add('hidden');
 });
 document.addEventListener('click', () => {
@@ -134,7 +159,8 @@ function renderServiceTags() {
   document.getElementById('servicesTags').innerHTML = serviceTags.map((s, i) => {
     const icon = typeof s === 'object' ? s.icon : '✓';
     const name = typeof s === 'object' ? s.name : s;
-    return `<span class="service-tag">${icon} ${name} <button onclick="removeTag(${i})">✕</button></span>`;
+    const iconHtml = SITE_ICON_KEYS.includes(icon) ? iconImg(icon, name) : icon;
+    return `<span class="service-tag">${iconHtml} ${name} <button onclick="removeTag(${i})">✕</button></span>`;
   }).join('');
   document.getElementById('bizServices').value = JSON.stringify(serviceTags);
 }

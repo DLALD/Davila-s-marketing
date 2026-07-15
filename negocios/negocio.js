@@ -4,6 +4,24 @@ const db = createClient(
   'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh'
 );
 
+// ── SITE ICONS (carpeta "Logos de la pagina", hermana de /negocios y /admin) ──
+const ICONS_PATH = '../Logos de la pagina/';
+const SITE_ICONS = [
+  { key: 'apoyo',                label: 'Apoyo' },
+  { key: 'carro',                label: 'Carro' },
+  { key: 'conexion',             label: 'Conexión' },
+  { key: 'estadisticas',         label: 'Estadísticas' },
+  { key: 'flecha-izquierda',     label: 'Flecha Izquierda' },
+  { key: 'lavado-de-coches',     label: 'Lavado de Coches' },
+  { key: 'llamada-telefonica',   label: 'Llamada Telefónica' },
+  { key: 'mapas-de-google',      label: 'Mapas de Google' },
+  { key: 'marcador-de-posicion', label: 'Marcador de Posición' },
+  { key: 'spray',                label: 'Spray' },
+];
+const SITE_ICON_KEYS = SITE_ICONS.map(i => i.key);
+function iconSrc(key) { return `${ICONS_PATH}${key}.png`; }
+function iconImg(key, alt = '') { return `<img src="${iconSrc(key)}" alt="${alt}" class="site-icon" />`; }
+
 async function loadBusiness() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) { document.getElementById('bizDescription').textContent = 'Business not found.'; return; }
@@ -60,9 +78,9 @@ async function loadBusiness() {
 
   // Contact bar: phone + email + address + hours + redes sociales
   const barParts = [];
-  if (b.phone)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">📞</div><div><strong>Phone</strong><a href="tel:${b.phone}">${b.phone}</a></div></div>`);
+  if (b.phone)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">${iconImg('llamada-telefonica', 'Teléfono')}</div><div><strong>Phone</strong><a href="tel:${b.phone}">${b.phone}</a></div></div>`);
   if (b.email)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">✉️</div><div><strong>Email</strong><a href="mailto:${b.email}">${b.email}</a></div></div>`);
-  if (b.address) barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">📍</div><div><strong>Address</strong>${b.address}</div></div>`);
+  if (b.address) barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">${iconImg('marcador-de-posicion', 'Dirección')}</div><div><strong>Address</strong>${b.address}</div></div>`);
   if (b.hours)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">🕐</div><div><strong>Hours</strong>${b.hours}</div></div>`);
 
   // Redes sociales en el contact bar
@@ -124,9 +142,9 @@ async function loadBusiness() {
 
   // Contact rows
   const rows = [];
-  if (b.phone)   rows.push(`<div class="contact-row"><span class="ci">📞</span><a href="tel:${b.phone}">${b.phone}</a></div>`);
+  if (b.phone)   rows.push(`<div class="contact-row"><span class="ci">${iconImg('llamada-telefonica', 'Teléfono')}</span><a href="tel:${b.phone}">${b.phone}</a></div>`);
   if (b.email)   rows.push(`<div class="contact-row"><span class="ci">✉️</span><a href="mailto:${b.email}">${b.email}</a></div>`);
-  if (b.address) rows.push(`<div class="contact-row"><span class="ci">📍</span><span>${b.address}</span></div>`);
+  if (b.address) rows.push(`<div class="contact-row"><span class="ci">${iconImg('marcador-de-posicion', 'Dirección')}</span><span>${b.address}</span></div>`);
   if (b.hours)   rows.push(`<div class="contact-row"><span class="ci">🕐</span><span>${b.hours}</span></div>`);
   document.getElementById('contactRows').innerHTML = rows.join('');
 
@@ -196,6 +214,10 @@ async function loadBusiness() {
     document.getElementById('mapCard').classList.remove('hidden');
     mapContainer.innerHTML = `<iframe src="${makeQueryEmbed(b.address)}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
   }
+  const mapTitleEl = document.getElementById('mapTitle');
+  if (mapTitleEl && !document.getElementById('mapCard').classList.contains('hidden')) {
+    mapTitleEl.innerHTML = `${iconImg('mapas-de-google', 'Google Maps')} Location`;
+  }
 
   // Services
   const services = b.services || [];
@@ -206,7 +228,10 @@ async function loadBusiness() {
     document.getElementById('bizServices').innerHTML = services.map(s => {
       const icon = typeof s === 'object' ? s.icon : '✓';
       const name = typeof s === 'object' ? s.name : s;
-      return `<div class="service-item"><span class="service-item-icon">${icon}</span><span class="service-item-name">${name}</span></div>`;
+      const iconHtml = SITE_ICON_KEYS.includes(icon)
+        ? iconImg(icon, name)
+        : `<span class="service-item-icon">${icon}</span>`;
+      return `<div class="service-item">${iconHtml}<span class="service-item-name">${name}</span></div>`;
     }).join('');
   }
 
