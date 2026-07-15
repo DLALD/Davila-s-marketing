@@ -37,20 +37,20 @@
   <!-- CONTACT BAR -->
   <div class="contact-bar" id="contactBar"></div>
 
-  <!-- PAGE CONTENT -->
-  <div class="page-content">
-
-    <!-- SERVICES (first after contact bar) -->
-    <div class="full-section hidden" id="servicesCard">
+  <!-- SERVICES full width -->
+  <div class="full-section full-width hidden" id="servicesCard">
+    <div class="full-section-inner">
       <div class="services-header">
         <div class="section-label">What We Offer</div>
         <h2 id="servicesTitle">Our Services</h2>
       </div>
       <div class="services-grid" id="bizServices"></div>
     </div>
+  </div>
 
-    <!-- ABOUT + CONTACT ROW -->
-    <div class="section-row" id="sectionAboutContact">
+  <!-- ABOUT + CONTACT full width -->
+  <div class="about-contact-wrap" id="sectionAboutContact">
+    <div class="section-row">
       <div class="col-about">
         <div class="section-label">About</div>
         <p id="bizDescription">Loading…</p>
@@ -64,15 +64,11 @@
         <div class="contact-actions" id="contactActions"></div>
       </div>
     </div>
+  </div>
 
-    <!-- GALLERY -->
-    <div class="full-section hidden" id="cardGallery">
-      <div class="section-label">Gallery</div>
-      <div class="gallery" id="bizGallery"></div>
-    </div>
-
-    <!-- REVIEWS + SOCIAL ROW -->
-    <div class="section-row hidden" id="cardReviews">
+  <!-- REVIEWS + SOCIAL full width -->
+  <div class="about-contact-wrap hidden" id="cardReviews">
+    <div class="section-row">
       <div class="col-reviews">
         <div class="section-label">Reviews</div>
         <div id="bizReviews"></div>
@@ -82,7 +78,14 @@
         <div class="social-bubbles" id="socialLinks"></div>
       </div>
     </div>
+  </div>
 
+  <!-- GALLERY full width -->
+  <div class="full-section full-width hidden" id="cardGallery">
+    <div class="full-section-inner">
+      <div class="section-label">Gallery</div>
+      <div class="gallery" id="bizGallery"></div>
+    </div>
   </div>
 
   <!-- MAP centrado -->

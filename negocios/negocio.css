@@ -164,10 +164,28 @@ body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--t
 }
 
 /* ── PAGE CONTENT ── */
-.page-content {
+.page-content { display: none; }
+
+/* wrapper centrado reutilizable */
+.centered { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+/* ── ABOUT + CONTACT ROW ── */
+.about-contact-wrap {
+  width: 100%;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray2);
+}
+.about-contact-wrap > * { max-width: 1200px; margin: 0 auto; }
+
+.section-row {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 0;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray2);
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 40px;
+  width: 100%;
 }
 
 /* ── SECTION LABEL ── */
@@ -182,10 +200,11 @@ body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--t
 /* ── ABOUT + CONTACT ROW ── */
 .section-row {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 380px;
   gap: 0;
   background: var(--white);
   border-bottom: 1px solid var(--gray2);
+  width: 100%;
 }
 .col-about {
   padding: 52px 48px;
@@ -241,6 +260,15 @@ body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--t
   background: var(--white);
   border-bottom: 1px solid var(--gray2);
   padding: 52px 48px;
+}
+.full-section.full-width {
+  padding: 52px 0;
+  width: 100%;
+}
+.full-section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 48px;
 }
 .services-header {
   margin-bottom: 32px;
@@ -524,10 +552,10 @@ body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--t
   .nav, .footer { padding-left: 20px; padding-right: 20px; }
   .hero { height: var(--hero-height-mobile); width: var(--hero-width-mobile); }
   .hero-overlay { padding: 40px 24px 36px; }
-  .page-content { padding: 0; }
-  .section-row { grid-template-columns: 1fr; }
+  .about-contact-wrap, .section-row { grid-template-columns: 1fr; }
   .col-about, .col-reviews { border-right: none; border-bottom: 1px solid var(--gray2); }
   .col-about, .col-contact, .col-reviews, .col-social, .full-section { padding: 36px 24px; }
+  .full-section-inner { padding: 0 24px; }
   .contact-bar-item { min-width: 50%; }
   .map-section-header { padding: 14px 24px 10px; }
 }
