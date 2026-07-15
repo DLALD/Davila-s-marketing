@@ -127,19 +127,62 @@ document.getElementById('btnAddReview').addEventListener('click', () => {
   renderReviews();
 });
 
+// Hero height inputs behavior
+const heroDesktopInput = document.getElementById('bizHeroHeightDesktop');
+const heroMobileInput  = document.getElementById('bizHeroHeightMobile');
+if (heroDesktopInput) {
+  heroDesktopInput.addEventListener('input', e => {
+    document.getElementById('heroHeightDesktopVal').textContent = e.target.value + 'px';
+    document.getElementById('bizHeroSettings').value = JSON.stringify({
+      desktop: parseInt(heroDesktopInput.value, 10),
+      mobile: parseInt(heroMobileInput ? heroMobileInput.value : 360, 10)
+    });
+  });
+}
+if (heroMobileInput) {
+  heroMobileInput.addEventListener('input', e => {
+    document.getElementById('heroHeightMobileVal').textContent = e.target.value + 'px';
+    document.getElementById('bizHeroSettings').value = JSON.stringify({
+      desktop: parseInt(heroDesktopInput ? heroDesktopInput.value : 620, 10),
+      mobile: parseInt(heroMobileInput.value, 10)
+    });
+  });
+}
+
 // ── SOCIAL NETWORKS (dynamic) ──
 const SOCIAL_OPTIONS = [
-  { key: 'facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/...' },
-  { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...' },
-  { key: 'whatsapp',  label: 'WhatsApp',  placeholder: '+1 (234) 567-890' },
-  { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@...' },
-  { key: 'youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/...' },
+  { key: 'facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/...', logo: '../logos/facebook.png' },
+  { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...', logo: '../logos/instagram.png' },
+  { key: 'whatsapp',  label: 'WhatsApp',  placeholder: '+1 (234) 567-890', logo: '../logos/whatsapp.png' },
+  { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@...', logo: '../logos/tik-tok.png' },
+  { key: 'youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/...', logo: '../logos/youtube.png' },
   { key: 'twitter',   label: 'X / Twitter', placeholder: 'https://x.com/...' },
-  { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/...' },
-  { key: 'snapchat',  label: 'Snapchat',  placeholder: 'https://snapchat.com/add/...' },
+  { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/...', logo: '../logos/linkedin.png' },
+  { key: 'snapchat',  label: 'Snapchat',  placeholder: 'https://snapchat.com/add/...', logo: '../logos/snapchat.png' },
   { key: 'pinterest', label: 'Pinterest', placeholder: 'https://pinterest.com/...' },
 ];
 let socials = {}; // { facebook: 'url', instagram: 'url', ... }
+
+function renderSocialPicker() {
+  const picker = document.getElementById('socialPicker');
+  const available = SOCIAL_OPTIONS.filter(o => !socials[o.key]);
+  if (!available.length) {
+    picker.innerHTML = '<div class="social-picker-empty">All social networks added.</div>';
+    return;
+  }
+  picker.innerHTML = available.map(opt => `
+    <button type="button" class="social-picker-btn" data-key="${opt.key}" title="Add ${opt.label}">
+      ${opt.logo ? `<img src="${opt.logo}" alt="${opt.label}" />` : opt.label[0]}
+      <span>${opt.label}</span>
+    </button>`).join('');
+  picker.querySelectorAll('.social-picker-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      socials[key] = '';
+      renderSocials();
+    });
+  });
+}
 
 function renderSocials() {
   const container = document.getElementById('socialNetworks');
@@ -148,35 +191,47 @@ function renderSocials() {
     const opt = SOCIAL_OPTIONS.find(o => o.key === key);
     return `
     <div class="social-row" data-key="${key}">
-      <span class="social-row-label">${opt?.label || key}</span>
-      <input type="text" value="${socials[key]}" placeholder="${opt?.placeholder || ''}" 
-             onchange="socials['${key}']=this.value;syncSocials()" />
-      <button type="button" onclick="removeSocial('${key}')">✕</button>
+      <div class="social-row-icon">
+        ${opt?.logo ? `<img src="${opt.logo}" alt="${opt.label}" />` : opt?.label?.charAt(0) || key}
+      </div>
+      <div class="social-row-body">
+        <label>${opt?.label || key}</label>
+        <input type="text" value="${socials[key]}" placeholder="${opt?.placeholder || ''}"
+               onchange="socials['${key}']=this.value;syncSocials()" />
+      </div>
+      <button type="button" class="social-row-remove" onclick="removeSocial('${key}')">✕</button>
     </div>`;
   }).join('');
   syncSocials();
+  renderSocialPicker();
 }
 
 function syncSocials() { document.getElementById('bizSocials').value = JSON.stringify(socials); }
 window.removeSocial = (key) => { delete socials[key]; renderSocials(); };
-
-document.getElementById('btnAddSocial').addEventListener('click', () => {
-  const available = SOCIAL_OPTIONS.filter(o => !socials[o.key]);
-  if (!available.length) return;
-  const opts = available.map(o => `<option value="${o.key}">${o.label}</option>`).join('');
-  const sel = document.createElement('select');
-  sel.innerHTML = opts;
-  sel.className = 'social-picker';
-  sel.addEventListener('change', () => {
-    socials[sel.value] = '';
-    sel.remove();
-    renderSocials();
-  });
-  document.getElementById('btnAddSocial').insertAdjacentElement('beforebegin', sel);
-  sel.focus();
-});
 document.getElementById('bizCategory').addEventListener('change', function () {
   document.getElementById('bizCategoryCustom').style.display = this.value === 'Other' ? 'block' : 'none';
+});
+
+document.getElementById('bizLogoFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
+  const preview = document.getElementById('logoPreview');
+  preview.innerHTML = '<p style="color:#aaa;font-size:.8rem">Uploading...</p>';
+  const url = await uploadImage(file);
+  if (url) {
+    document.getElementById('bizLogoUrl').value = url;
+    document.getElementById('bizLogoUrlInput').value = url;
+    preview.innerHTML = `<img src="${url}" alt="Logo preview" />`;
+  } else {
+    preview.innerHTML = '<p style="color:#e53e3e;font-size:.8rem">Upload failed</p>';
+  }
+});
+
+document.getElementById('bizLogoUrlInput').addEventListener('input', function () {
+  const value = this.value.trim();
+  document.getElementById('bizLogoUrl').value = value;
+  const preview = document.getElementById('logoPreview');
+  preview.innerHTML = value ? `<img src="${value}" alt="Logo preview" />` : '';
 });
 
 // ── RENDER BUSINESS LIST ──
@@ -206,7 +261,7 @@ async function renderList() {
         <p>${b.description || ''}</p>
         <div class="biz-admin-card-actions">
           <button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Edit</button>
-          <a class="btn-view" href="../negocios/${slugify(b.name)}/index.html" target="_blank">🔗</a>
+          <a class="btn-view" href="../negocios/negocio.html?id=${b.id}" target="_blank">🔗</a>
           <button class="btn-delete" onclick="deleteBusiness('${b.id}')">🗑️</button>
         </div>
       </div>
@@ -220,6 +275,7 @@ function openAdd() {
   document.getElementById('bizIndex').value = '';
   document.getElementById('bizCategoryCustom').style.display = 'none';
   document.getElementById('heroPreview').innerHTML = '';
+  document.getElementById('logoPreview').innerHTML = '';
   galleryUrls = []; renderGalleryPreview();
   serviceTags = []; renderServiceTags();
   reviews = []; renderReviews();
@@ -243,6 +299,8 @@ window.openEdit = async (id) => {
   document.getElementById('bizMapsUrl').value         = b.maps_url         || '';
   document.getElementById('bizHours').value           = b.hours            || '';
   document.getElementById('bizWebsite').value         = b.website          || '';
+  document.getElementById('bizLogoUrl').value         = b.logo_url        || '';
+  document.getElementById('bizLogoUrlInput').value    = b.logo_url        || '';
   document.getElementById('bizHeroImage').value       = b.hero_image       || '';
   document.getElementById('bizCategoryCustom').style.display = 'none';
 
@@ -272,6 +330,17 @@ window.openEdit = async (id) => {
   document.getElementById('heroPreview').innerHTML = b.hero_image
     ? `<img src="${b.hero_image}" alt="Hero preview" />` : '';
   document.getElementById('bizHeroFile').value = '';
+  document.getElementById('logoPreview').innerHTML = b.logo_url
+    ? `<img src="${b.logo_url}" alt="Logo preview" />` : '';
+  document.getElementById('bizLogoFile').value = '';
+
+  // hero settings (desktop/mobile height)
+  const heroSettings = b.hero_settings || {};
+  document.getElementById('bizHeroHeightDesktop').value = heroSettings.desktop || 620;
+  document.getElementById('heroHeightDesktopVal').textContent = (heroSettings.desktop || 620) + 'px';
+  document.getElementById('bizHeroHeightMobile').value = heroSettings.mobile || 360;
+  document.getElementById('heroHeightMobileVal').textContent = (heroSettings.mobile || 360) + 'px';
+  document.getElementById('bizHeroSettings').value = JSON.stringify(heroSettings || {});
 
   galleryUrls = b.gallery  || []; renderGalleryPreview();
   serviceTags = b.services || []; renderServiceTags();
@@ -304,8 +373,12 @@ document.getElementById('bizForm').addEventListener('submit', async e => {
     maps_url:         document.getElementById('bizMapsUrl').value.trim(),
     hours:            document.getElementById('bizHours').value.trim(),
     website:          document.getElementById('bizWebsite').value.trim(),
+    logo_url:         document.getElementById('bizLogoUrl').value.trim() || document.getElementById('bizLogoUrlInput').value.trim(),
     socials:          socials,
     hero_image:       document.getElementById('bizHeroImage').value.trim(),
+    hero_settings:    (() => {
+      try { return JSON.parse(document.getElementById('bizHeroSettings').value || '{}'); } catch(e) { return {}; }
+    })(),
     gallery:          galleryUrls,
     services:         serviceTags,
     reviews:          reviews,

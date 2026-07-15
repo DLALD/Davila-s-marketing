@@ -143,11 +143,24 @@
             </div>
           </div>
 
+          <div class="form-row">
+            <div class="form-group">
+              <label>🖼️ Website Logo Upload <span class="hint">Choose a local image to upload as the business logo</span></label>
+              <input type="file" id="bizLogoFile" accept="image/*" />
+              <div class="img-preview logo-preview" id="logoPreview"></div>
+              <input type="hidden" id="bizLogoUrl" />
+            </div>
+            <div class="form-group">
+              <label>🖼️ Website Logo URL <span class="hint">Optional — paste an existing logo URL instead</span></label>
+              <input type="url" id="bizLogoUrlInput" placeholder="https://yourdomain.com/logo.png" />
+            </div>
+          </div>
+
           <div class="form-section-title">Social Media</div>
-          <div id="socialNetworks">
+          <div class="social-picker" id="socialPicker"></div>
+          <div id="socialNetworks" class="social-networks">
             <!-- rows added dynamically -->
           </div>
-          <button type="button" class="btn-add-tag" id="btnAddSocial" style="margin-top:8px">+ Add Social Network</button>
           <input type="hidden" id="bizSocials" />
         </div>
 
@@ -159,6 +172,18 @@
             <div class="img-preview" id="heroPreview"></div>
             <input type="hidden" id="bizHeroImage" />
           </div>
+
+          <div class="form-group">
+            <label>Hero Height — Desktop</label>
+            <input type="range" id="bizHeroHeightDesktop" min="200" max="1000" value="620" />
+            <div class="char-count" id="heroHeightDesktopVal">620px</div>
+          </div>
+          <div class="form-group">
+            <label>Hero Height — Mobile</label>
+            <input type="range" id="bizHeroHeightMobile" min="200" max="800" value="360" />
+            <div class="char-count" id="heroHeightMobileVal">360px</div>
+          </div>
+          <input type="hidden" id="bizHeroSettings" />
 
           <div class="form-section-title">Gallery Images</div>
           <div class="gallery-input-row">

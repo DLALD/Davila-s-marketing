@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS negocios (
   instagram        TEXT,
   whatsapp         TEXT,
   tiktok           TEXT,
+  logo_url         TEXT,
   hero_image       TEXT,
   gallery          JSONB DEFAULT '[]',
   services         JSONB DEFAULT '[]',
@@ -27,6 +28,9 @@ CREATE TABLE IF NOT EXISTS negocios (
   date             TEXT,
   created_at       TIMESTAMPTZ DEFAULT now()
 );
+
+ALTER TABLE negocios ADD COLUMN IF NOT EXISTS logo_url TEXT;
+ALTER TABLE negocios ADD COLUMN IF NOT EXISTS hero_settings JSONB DEFAULT '{}'::jsonb;
 
 -- ── TABLA: clientes (logos en el banner) ──
 CREATE TABLE IF NOT EXISTS clientes (

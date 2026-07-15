@@ -18,6 +18,12 @@ async function loadBusiness() {
     document.getElementById('heroBg').src = b.hero_image;
     document.getElementById('heroBg').alt = b.name;
   }
+  if (b.logo_url) {
+    const heroLogo = document.getElementById('heroLogo');
+    heroLogo.src = b.logo_url;
+    heroLogo.alt = `${b.name} logo`;
+    document.getElementById('heroLogoContainer').classList.add('hidden');
+  }
   document.getElementById('heroTag').textContent  = b.category || 'Business';
   document.getElementById('heroName').textContent = b.name;
 
@@ -67,22 +73,28 @@ async function loadBusiness() {
   // Contact action buttons
   const actions = [];
   if (b.whatsapp) actions.push(`<a class="btn-cta btn-cta-green" href="https://wa.me/${b.whatsapp.replace(/\D/g,'')}" target="_blank">💬 WhatsApp</a>`);
-  if (b.phone)    actions.push(`<a class="btn-cta btn-cta-blue" href="tel:${b.phone}">📞 Call Now</a>`);
-  if (b.email)    actions.push(`<a class="btn-cta btn-cta-outline" href="mailto:${b.email}">✉️ Send Email</a>`);
+  if (b.website) {
+    // Show website as a proper CTA with logo + text when logo_url exists
+    if (b.logo_url) {
+      actions.push(`<a class="btn-cta btn-cta-blue" href="${b.website}" target="_blank"><img class="btn-logo" src="${b.logo_url}" alt="${b.name} logo" /> Visit Website</a>`);
+    } else {
+      actions.push(`<a class="btn-cta btn-cta-blue" href="${b.website}" target="_blank">Visit Website</a>`);
+    }
+  }
+  if (b.email)    actions.push(`<a class="btn-cta btn-cta-outline" href="mailto:${b.email}">✉️ Email</a>`);
   document.getElementById('contactActions').innerHTML = actions.join('');
 
   // Social bubbles
   const SOCIAL_META = {
-    facebook:  { icon: '📘', cls: 'sb-facebook',  label: 'Facebook' },
-    instagram: { icon: '📸', cls: 'sb-instagram', label: 'Instagram' },
-    whatsapp:  { icon: '💬', cls: 'sb-whatsapp',  label: 'WhatsApp' },
+    facebook:  { icon: '📘', cls: 'sb-facebook',  label: 'Facebook',  logo: '../logos/facebook.png' },
+    instagram: { icon: '📸', cls: 'sb-instagram', label: 'Instagram', logo: '../logos/instagram.png' },
+    whatsapp:  { icon: '💬', cls: 'sb-whatsapp',  label: 'WhatsApp',  logo: '../logos/whatsapp.png' },
     tiktok:    { icon: '🎵', cls: 'sb-tiktok',    label: 'TikTok' },
-    youtube:   { icon: '▶️', cls: 'sb-youtube',   label: 'YouTube' },
+    youtube:   { icon: '▶️', cls: 'sb-youtube',   label: 'YouTube',   logo: '../logos/youtube.png' },
     twitter:   { icon: '𝕏',  cls: 'sb-twitter',   label: 'X' },
     linkedin:  { icon: '💼', cls: 'sb-linkedin',  label: 'LinkedIn' },
-    snapchat:  { icon: '👻', cls: 'sb-snapchat',  label: 'Snapchat' },
+    snapchat:  { icon: '👻', cls: 'sb-snapchat',  label: 'Snapchat', logo: '../logos/snapchat.png' },
     pinterest: { icon: '📌', cls: 'sb-pinterest', label: 'Pinterest' },
-    website:   { icon: '🌐', cls: 'sb-website',   label: 'Website' },
   };
 
   // merge old fields + new socials object
@@ -94,12 +106,14 @@ async function loadBusiness() {
   if (b.website   && !socialsObj.website)   socialsObj.website   = b.website;
 
   const socialEntries = Object.entries(socialsObj).filter(([,v]) => v);
-  if (socialEntries.length) {
+  if (socialEntries.length || b.logo_url) {
     document.getElementById('socialCard').classList.remove('hidden');
     document.getElementById('socialLinks').innerHTML = socialEntries.map(([key, url]) => {
+      if (key === 'website') return '';
       const m = SOCIAL_META[key] || { icon: '🔗', cls: 'sb-website', label: key };
       const href = key === 'whatsapp' ? `https://wa.me/${url.replace(/\D/g,'')}` : url;
-      return `<a class="social-bubble ${m.cls}" href="${href}" target="_blank" title="${m.label}">${m.icon}</a>`;
+      const iconHtml = m.logo ? `<img src="${m.logo}" alt="${m.label}" />` : `${m.icon}`;
+      return `<a class="social-bubble ${m.cls}" href="${href}" target="_blank" title="${m.label}">${iconHtml}</a>`;
     }).join('');
   }
 
@@ -112,20 +126,36 @@ async function loadBusiness() {
   // Decode HTML entities
   mapsUrl = mapsUrl.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
 
-  if (mapsUrl && mapsUrl.includes('maps/embed')) {
+  const makeQueryEmbed = query => `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+  const isEmbedUrl = url => url.includes('/maps/embed') || url.includes('output=embed');
+  const normalizeMapsUrl = url => {
+    try {
+      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+      if (isEmbedUrl(parsed.href)) return parsed.href;
+      const params = parsed.searchParams;
+      if (params.has('q')) return makeQueryEmbed(params.get('q'));
+      if (params.has('query')) return makeQueryEmbed(params.get('query'));
+      if (params.has('pb')) return `https://www.google.com/maps/embed?pb=${params.get('pb')}`;
+      const path = parsed.pathname;
+      const placeMatch = path.match(/\/maps\/place\/([^\/]+)/);
+      if (placeMatch) return makeQueryEmbed(decodeURIComponent(placeMatch[1].replace(/\+/g, ' ')));
+      const atMatch = path.match(/@(-?\d+\.\d+,-?\d+\.\d+)/);
+      if (atMatch) return makeQueryEmbed(atMatch[1]);
+      const searchMatch = path.match(/\/maps\/(search|dir)\/([^\/]+)/);
+      if (searchMatch) return makeQueryEmbed(decodeURIComponent(searchMatch[2].replace(/\+/g, ' ')));
+      return makeQueryEmbed(parsed.href);
+    } catch (err) {
+      return makeQueryEmbed(url);
+    }
+  };
+
+  if (mapsUrl) {
     document.getElementById('mapCard').classList.remove('hidden');
-    mapContainer.innerHTML = `<iframe src="${mapsUrl}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+    const src = isEmbedUrl(mapsUrl) ? mapsUrl : normalizeMapsUrl(mapsUrl);
+    mapContainer.innerHTML = `<iframe src="${src}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
   } else if (b.address) {
     document.getElementById('mapCard').classList.remove('hidden');
-    const q = encodeURIComponent(b.address);
-    mapContainer.innerHTML = `
-      <a class="map-link" href="https://maps.google.com/?q=${q}" target="_blank">
-        <div class="map-placeholder">
-          <div class="map-pin">📍</div>
-          <div class="map-address">${b.address}</div>
-          <div class="map-open">Open in Google Maps →</div>
-        </div>
-      </a>`;
+    mapContainer.innerHTML = `<iframe src="${makeQueryEmbed(b.address)}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
   }
 
   // Services
@@ -134,6 +164,39 @@ async function loadBusiness() {
     document.getElementById('servicesCard').classList.remove('hidden');
     document.getElementById('bizServices').innerHTML = services.map(s => `<li>${s}</li>`).join('');
   }
+
+  // Animate text blocks on load (staggered)
+  (function animateTextBlocks() {
+    const selectors = ['#hero', '#cardAbout', '#cardGallery', '#cardReviews', '#contactCard', '#socialCard', '#servicesCard'];
+    const els = selectors.map(s => document.querySelector(s)).filter(Boolean);
+    els.forEach(el => el.classList.add('reveal'));
+    // slower stagger: 220ms between blocks for a more noticeable entrance
+    els.forEach((el, i) => setTimeout(() => el.classList.add('show'), i * 220));
+  })();
+
+  // Add ripple click effect and stronger hover to CTAs (Visit button)
+  (function initButtonRipples() {
+    document.querySelectorAll('.btn-cta').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        const rect = btn.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 700);
+      });
+      // keyboard accessible press animation
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          btn.classList.add('pressed');
+          setTimeout(() => btn.classList.remove('pressed'), 200);
+        }
+      });
+    });
+  })();
 }
 
 // Lightbox
@@ -150,3 +213,5 @@ document.getElementById('lightbox').addEventListener('click', e => {
 });
 
 loadBusiness();
+
+// Preview toolbar removed — hero height should come from admin `hero_settings` persisted in DB.

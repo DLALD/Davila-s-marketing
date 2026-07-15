@@ -21,6 +21,9 @@
   <section class="hero" id="hero">
     <img class="hero-bg" id="heroBg" src="" alt="" />
     <div class="hero-overlay">
+      <div class="hero-logo hidden" id="heroLogoContainer">
+        <img id="heroLogo" src="" alt="" />
+      </div>
       <span class="hero-tag" id="heroTag"></span>
       <h1 id="heroName"></h1>
       <div class="hero-meta" id="heroMeta"></div>
@@ -93,6 +96,8 @@
     <button class="lightbox-close" id="lightboxClose">✕</button>
     <img id="lightboxImg" src="" alt="" />
   </div>
+
+  <!-- preview toolbar removed; hero height controlled from Admin -->
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="negocio.js"></script>
