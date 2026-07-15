@@ -245,9 +245,22 @@
         <!-- TAB: SERVICES -->
         <div class="tab-panel" id="tab-services">
           <div class="form-section-title">Services Offered</div>
-          <div class="tag-input-row">
-            <input type="text" id="serviceInput" placeholder="Type a service and press Enter or Add →" />
-            <button type="button" class="btn-add-tag" id="btnAddService">Add</button>
+          <div class="service-input-row">
+            <div class="service-icon-picker" id="serviceIconPicker">
+              <button type="button" class="service-icon-btn" id="serviceIconBtn">🔧</button>
+              <div class="service-icon-dropdown hidden" id="serviceIconDropdown">
+                <span data-icon="🔧">🔧</span><span data-icon="🚗">🚗</span><span data-icon="✂️">✂️</span>
+                <span data-icon="🏠">🏠</span><span data-icon="💆">💆</span><span data-icon="🍽️">🍽️</span>
+                <span data-icon="💻">💻</span><span data-icon="📦">📦</span><span data-icon="🎨">🎨</span>
+                <span data-icon="🔑">🔑</span><span data-icon="⚡">⚡</span><span data-icon="🌿">🌿</span>
+                <span data-icon="🏋️">🏋️</span><span data-icon="📷">📷</span><span data-icon="🚚">🚚</span>
+                <span data-icon="🧹">🧹</span><span data-icon="💊">💊</span><span data-icon="🔒">🔒</span>
+                <span data-icon="🎵">🎵</span><span data-icon="📐">📐</span><span data-icon="🌐">🌐</span>
+                <span data-icon="💰">💰</span><span data-icon="⚖️">⚖️</span><span data-icon="🐾">🐾</span>
+              </div>
+            </div>
+            <input type="text" id="serviceInput" placeholder="Nombre del servicio..." />
+            <button type="button" class="btn-add-tag" id="btnAddService">Agregar</button>
           </div>
           <div class="tags-container" id="servicesTags"></div>
           <input type="hidden" id="bizServices" />

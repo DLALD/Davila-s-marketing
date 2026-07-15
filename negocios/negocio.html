@@ -14,7 +14,7 @@
       <span class="logo-main">DAVILA'S</span>
       <span class="logo-sub">Marketing</span>
     </a>
-    <a href="../Pagina principal/index.html#businesses" class="nav-back">← Back</a>
+    <a href="../Pagina principal/index.html#businesses" class="nav-back">Back</a>
   </nav>
 
   <!-- HERO -->
@@ -28,36 +28,34 @@
       <h1 id="heroName"></h1>
       <div class="hero-meta" id="heroMeta"></div>
     </div>
+    <!-- wave -->
+    <svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z"/>
+    </svg>
   </section>
 
-  <!-- BODY -->
-  <div class="page-body">
+  <!-- CONTACT BAR -->
+  <div class="contact-bar" id="contactBar"></div>
 
-    <!-- LEFT COLUMN -->
-    <div class="col-main">
+  <!-- PAGE CONTENT -->
+  <div class="page-content">
 
-      <div class="card" id="cardAbout">
-        <h2 class="card-title">About</h2>
-        <p id="bizDescription">Loading…</p>
+    <!-- SERVICES (first after contact bar) -->
+    <div class="full-section hidden" id="servicesCard">
+      <div class="services-header">
+        <div class="section-label">What We Offer</div>
+        <h2 id="servicesTitle">Our Services</h2>
       </div>
-
-      <div class="card hidden" id="cardGallery">
-        <h2 class="card-title">Gallery</h2>
-        <div class="gallery" id="bizGallery"></div>
-      </div>
-
-      <div class="card hidden" id="cardReviews">
-        <h2 class="card-title">Reviews</h2>
-        <div id="bizReviews"></div>
-      </div>
-
+      <div class="services-grid" id="bizServices"></div>
     </div>
 
-    <!-- RIGHT COLUMN -->
-    <aside class="col-side">
-
-      <!-- CONTACT CARD -->
-      <div class="contact-card" id="contactCard">
+    <!-- ABOUT + CONTACT ROW -->
+    <div class="section-row" id="sectionAboutContact">
+      <div class="col-about">
+        <div class="section-label">About</div>
+        <p id="bizDescription">Loading…</p>
+      </div>
+      <div class="col-contact" id="contactCard">
         <div class="contact-header">
           <span class="contact-icon">📬</span>
           <h3>Contact</h3>
@@ -65,29 +63,50 @@
         <div class="contact-rows" id="contactRows"></div>
         <div class="contact-actions" id="contactActions"></div>
       </div>
+    </div>
 
-      <!-- SOCIAL -->
-      <div class="social-card hidden" id="socialCard">
-        <h3>Follow Us</h3>
+    <!-- GALLERY -->
+    <div class="full-section hidden" id="cardGallery">
+      <div class="section-label">Gallery</div>
+      <div class="gallery" id="bizGallery"></div>
+    </div>
+
+    <!-- REVIEWS + SOCIAL ROW -->
+    <div class="section-row hidden" id="cardReviews">
+      <div class="col-reviews">
+        <div class="section-label">Reviews</div>
+        <div id="bizReviews"></div>
+      </div>
+      <div class="col-social hidden" id="socialCard">
+        <div class="section-label">Follow Us</div>
         <div class="social-bubbles" id="socialLinks"></div>
       </div>
+    </div>
 
-      <!-- SERVICES -->
-      <div class="card hidden" id="servicesCard">
-        <h2 class="card-title">Services</h2>
-        <ul class="services-list" id="bizServices"></ul>
-      </div>
-
-    </aside>
   </div>
 
-  <!-- MAP — full width -->
+  <!-- MAP centrado -->
   <div class="map-section hidden" id="mapCard">
     <div class="map-section-header">
       <h3 class="map-title">📍 Location</h3>
     </div>
-    <div id="bizMap"></div>
+    <div class="map-wrap" id="bizMap"></div>
   </div>
+
+  <!-- ABOUT US (Davila's Marketing) -->
+  <section class="about-us-section">
+    <div class="about-us-inner">
+      <div class="about-us-badge">About Us</div>
+      <h2 class="about-us-title">Powered by <span>Davila's Marketing</span></h2>
+      <p class="about-us-text">We help local businesses grow their digital presence with professional websites, social media management, and marketing strategies tailored to your community. Every business page you see here is crafted with care to represent your brand at its best.</p>
+      <div class="about-us-stats">
+        <div class="about-stat"><strong>50+</strong><span>Businesses Listed</span></div>
+        <div class="about-stat"><strong>100%</strong><span>Local Focus</span></div>
+        <div class="about-stat"><strong>24/7</strong><span>Online Presence</span></div>
+      </div>
+      <a href="../Pagina principal/index.html" class="about-us-cta">Visit Our Website →</a>
+    </div>
+  </section>
 
   <footer class="footer">
     Powered by <a href="../Pagina principal/index.html">Davila's Marketing</a> · © 2025
@@ -98,8 +117,6 @@
     <button class="lightbox-close" id="lightboxClose">✕</button>
     <img id="lightboxImg" src="" alt="" />
   </div>
-
-  <!-- preview toolbar removed; hero height controlled from Admin -->
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="negocio.js"></script>

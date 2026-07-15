@@ -112,10 +112,30 @@ document.getElementById('btnAddGallery').addEventListener('click', async () => {
 
 // ── SERVICE TAGS ──
 let serviceTags = [];
+let selectedServiceIcon = '🔧';
+
+// Icon picker toggle
+document.getElementById('serviceIconBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('serviceIconDropdown').classList.toggle('hidden');
+});
+document.getElementById('serviceIconDropdown').addEventListener('click', (e) => {
+  const icon = e.target.dataset.icon;
+  if (!icon) return;
+  selectedServiceIcon = icon;
+  document.getElementById('serviceIconBtn').textContent = icon;
+  document.getElementById('serviceIconDropdown').classList.add('hidden');
+});
+document.addEventListener('click', () => {
+  document.getElementById('serviceIconDropdown')?.classList.add('hidden');
+});
 
 function renderServiceTags() {
-  document.getElementById('servicesTags').innerHTML = serviceTags.map((s, i) => `
-    <span class="service-tag">${s} <button onclick="removeTag(${i})">✕</button></span>`).join('');
+  document.getElementById('servicesTags').innerHTML = serviceTags.map((s, i) => {
+    const icon = typeof s === 'object' ? s.icon : '✓';
+    const name = typeof s === 'object' ? s.name : s;
+    return `<span class="service-tag">${icon} ${name} <button onclick="removeTag(${i})">✕</button></span>`;
+  }).join('');
   document.getElementById('bizServices').value = JSON.stringify(serviceTags);
 }
 
@@ -124,7 +144,10 @@ window.removeTag = (i) => { serviceTags.splice(i, 1); renderServiceTags(); };
 function addServiceTag() {
   const input = document.getElementById('serviceInput');
   const val = input.value.trim();
-  if (val && !serviceTags.includes(val)) { serviceTags.push(val); input.value = ''; renderServiceTags(); }
+  if (!val) return;
+  serviceTags.push({ icon: selectedServiceIcon, name: val });
+  input.value = '';
+  renderServiceTags();
 }
 document.getElementById('btnAddService').addEventListener('click', addServiceTag);
 document.getElementById('serviceInput').addEventListener('keydown', e => {

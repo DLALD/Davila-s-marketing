@@ -36,10 +36,48 @@ async function loadBusiness() {
   document.getElementById('heroTag').textContent  = b.category || 'Business';
   document.getElementById('heroName').textContent = b.name;
 
-  const metaParts = [];
-  if (b.address) metaParts.push(`📍 ${b.address}`);
-  if (b.hours)   metaParts.push(`🕐 ${b.hours}`);
-  document.getElementById('heroMeta').innerHTML = metaParts.map(p => `<span>${p}</span>`).join('');
+  // Hero meta: location + hours + social icons
+  const SOCIAL_META = {
+    facebook:  { icon: '📘', label: 'Facebook',  logo: '../logos/facebook.png' },
+    instagram: { icon: '📸', label: 'Instagram', logo: '../logos/instagram.png' },
+    whatsapp:  { icon: '💬', label: 'WhatsApp',  logo: '../logos/whatsapp.png' },
+    tiktok:    { icon: '🎵', label: 'TikTok' },
+    youtube:   { icon: '▶️', label: 'YouTube',   logo: '../logos/youtube.png' },
+    twitter:   { icon: '𝕏',  label: 'X' },
+    linkedin:  { icon: '💼', label: 'LinkedIn' },
+    snapchat:  { icon: '👻', label: 'Snapchat',  logo: '../logos/snapchat.png' },
+    pinterest: { icon: '📌', label: 'Pinterest' },
+  };
+
+  const socialsObj = b.socials || {};
+  if (b.facebook  && !socialsObj.facebook)  socialsObj.facebook  = b.facebook;
+  if (b.instagram && !socialsObj.instagram) socialsObj.instagram = b.instagram;
+  if (b.whatsapp  && !socialsObj.whatsapp)  socialsObj.whatsapp  = b.whatsapp;
+  if (b.tiktok    && !socialsObj.tiktok)    socialsObj.tiktok    = b.tiktok;
+
+  // Hero meta: vacío (sin address/hours)
+  document.getElementById('heroMeta').innerHTML = '';
+
+  // Contact bar: phone + email + address + hours + redes sociales
+  const barParts = [];
+  if (b.phone)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">📞</div><div><strong>Phone</strong><a href="tel:${b.phone}">${b.phone}</a></div></div>`);
+  if (b.email)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">✉️</div><div><strong>Email</strong><a href="mailto:${b.email}">${b.email}</a></div></div>`);
+  if (b.address) barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">📍</div><div><strong>Address</strong>${b.address}</div></div>`);
+  if (b.hours)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">🕐</div><div><strong>Hours</strong>${b.hours}</div></div>`);
+
+  // Redes sociales en el contact bar
+  const socialBarEntries = Object.entries(socialsObj).filter(([k, v]) => v && k !== 'website' && SOCIAL_META[k]);
+  if (socialBarEntries.length) {
+    const icons = socialBarEntries.map(([key, url]) => {
+      const m = SOCIAL_META[key] || { icon: '🔗', label: key };
+      const href = key === 'whatsapp' ? `https://wa.me/${url.replace(/\D/g,'')}` : url;
+      const img = m.logo ? `<img src="${m.logo}" alt="${m.label}" style="width:48px;height:48px;object-fit:contain;border-radius:4px;" />` : m.icon;
+      return `<a class="hero-social-icon" href="${href}" target="_blank" title="${m.label}">${img}</a>`;
+    }).join('');
+    barParts.push(`<div class="contact-bar-item"><div><strong>Follow Us</strong><div style="display:flex;gap:8px;margin-top:6px;">${icons}</div></div></div>`);
+  }
+
+  if (barParts.length) document.getElementById('contactBar').innerHTML = barParts.join('');
 
   // About
   document.getElementById('bizDescription').textContent = b.description_full || b.description || '';
@@ -48,11 +86,24 @@ async function loadBusiness() {
   const gallery = b.gallery || [];
   if (gallery.length) {
     document.getElementById('cardGallery').classList.remove('hidden');
-    document.getElementById('bizGallery').innerHTML = gallery.map((url, i) =>
-      `<img src="${url}" alt="Gallery ${i+1}" loading="lazy" data-index="${i}" />`
+    const galleryEl = document.getElementById('bizGallery');
+    galleryEl.innerHTML = gallery.map((url, i) =>
+      `<div class="gallery-item" data-index="${i}"><img src="${url}" alt="Gallery ${i+1}" loading="lazy" /></div>`
     ).join('');
-    document.getElementById('bizGallery').addEventListener('click', e => {
-      if (e.target.tagName === 'IMG') openLightbox(e.target.src);
+    // IntersectionObserver: staggered entrance
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const idx = +entry.target.dataset.index;
+          setTimeout(() => entry.target.classList.add('visible'), idx * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    galleryEl.querySelectorAll('.gallery-item').forEach(el => observer.observe(el));
+    galleryEl.addEventListener('click', e => {
+      const item = e.target.closest('.gallery-item');
+      if (item) openLightbox(item.querySelector('img').src);
     });
   }
 
@@ -93,36 +144,15 @@ async function loadBusiness() {
   if (b.email)    actions.push(`<a class="btn-cta btn-cta-outline" href="mailto:${b.email}">✉️ Email</a>`);
   document.getElementById('contactActions').innerHTML = actions.join('');
 
-  // Social bubbles
-  const SOCIAL_META = {
-    facebook:  { icon: '📘', cls: 'sb-facebook',  label: 'Facebook',  logo: '../logos/facebook.png' },
-    instagram: { icon: '📸', cls: 'sb-instagram', label: 'Instagram', logo: '../logos/instagram.png' },
-    whatsapp:  { icon: '💬', cls: 'sb-whatsapp',  label: 'WhatsApp',  logo: '../logos/whatsapp.png' },
-    tiktok:    { icon: '🎵', cls: 'sb-tiktok',    label: 'TikTok' },
-    youtube:   { icon: '▶️', cls: 'sb-youtube',   label: 'YouTube',   logo: '../logos/youtube.png' },
-    twitter:   { icon: '𝕏',  cls: 'sb-twitter',   label: 'X' },
-    linkedin:  { icon: '💼', cls: 'sb-linkedin',  label: 'LinkedIn' },
-    snapchat:  { icon: '👻', cls: 'sb-snapchat',  label: 'Snapchat', logo: '../logos/snapchat.png' },
-    pinterest: { icon: '📌', cls: 'sb-pinterest', label: 'Pinterest' },
-  };
-
-  // merge old fields + new socials object
-  const socialsObj = b.socials || {};
-  if (b.facebook  && !socialsObj.facebook)  socialsObj.facebook  = b.facebook;
-  if (b.instagram && !socialsObj.instagram) socialsObj.instagram = b.instagram;
-  if (b.whatsapp  && !socialsObj.whatsapp)  socialsObj.whatsapp  = b.whatsapp;
-  if (b.tiktok    && !socialsObj.tiktok)    socialsObj.tiktok    = b.tiktok;
-  if (b.website   && !socialsObj.website)   socialsObj.website   = b.website;
-
-  const socialEntries = Object.entries(socialsObj).filter(([,v]) => v);
-  if (socialEntries.length || b.logo_url) {
+  const socialEntries2 = Object.entries(socialsObj).filter(([,v]) => v);
+  if (socialEntries2.length || b.logo_url) {
     document.getElementById('socialCard').classList.remove('hidden');
-    document.getElementById('socialLinks').innerHTML = socialEntries.map(([key, url]) => {
+    document.getElementById('socialLinks').innerHTML = socialEntries2.map(([key, url]) => {
       if (key === 'website') return '';
       const m = SOCIAL_META[key] || { icon: '🔗', cls: 'sb-website', label: key };
       const href = key === 'whatsapp' ? `https://wa.me/${url.replace(/\D/g,'')}` : url;
       const iconHtml = m.logo ? `<img src="${m.logo}" alt="${m.label}" />` : `${m.icon}`;
-      return `<a class="social-bubble ${m.cls}" href="${href}" target="_blank" title="${m.label}">${iconHtml}</a>`;
+      return `<a class="social-bubble ${m.cls || ''}" href="${href}" target="_blank" title="${m.label}">${iconHtml}</a>`;
     }).join('');
   }
 
@@ -171,16 +201,40 @@ async function loadBusiness() {
   const services = b.services || [];
   if (services.length) {
     document.getElementById('servicesCard').classList.remove('hidden');
-    document.getElementById('bizServices').innerHTML = services.map(s => `<li>${s}</li>`).join('');
+    const titleEl = document.getElementById('servicesTitle');
+    if (titleEl) titleEl.textContent = `${b.name} Services`;
+    document.getElementById('bizServices').innerHTML = services.map(s => {
+      const icon = typeof s === 'object' ? s.icon : '✓';
+      const name = typeof s === 'object' ? s.name : s;
+      return `<div class="service-item"><span class="service-item-icon">${icon}</span><span class="service-item-name">${name}</span></div>`;
+    }).join('');
   }
 
-  // Animate text blocks on load (staggered)
-  (function animateTextBlocks() {
-    const selectors = ['#hero', '#cardAbout', '#cardGallery', '#cardReviews', '#contactCard', '#socialCard', '#servicesCard'];
-    const els = selectors.map(s => document.querySelector(s)).filter(Boolean);
-    els.forEach(el => el.classList.add('reveal'));
-    // slower stagger: 220ms between blocks for a more noticeable entrance
-    els.forEach((el, i) => setTimeout(() => el.classList.add('show'), i * 220));
+  // Animate sections on scroll
+  (function initScrollAnimations() {
+    const blocks = [
+      { sel: '.col-about',    cls: 'anim-block-left' },
+      { sel: '.col-contact',  cls: 'anim-block-right' },
+      { sel: '#servicesCard', cls: 'anim-block' },
+      { sel: '#cardGallery',  cls: 'anim-block' },
+      { sel: '.col-reviews',  cls: 'anim-block-left' },
+      { sel: '#socialCard',   cls: 'anim-block-right' },
+      { sel: '.map-section',  cls: 'anim-block' },
+      { sel: '.about-us-section', cls: 'anim-block' },
+    ];
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationDelay = (i * 0.08) + 's';
+          entry.target.classList.add('in');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    blocks.forEach(({ sel, cls }) => {
+      const el = document.querySelector(sel);
+      if (el) { el.classList.add(cls); obs.observe(el); }
+    });
   })();
 
   // Add ripple click effect and stronger hover to CTAs (Visit button)

@@ -293,19 +293,40 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .gallery-thumb-remove:hover { background: var(--danger); }
 
 /* ── SERVICE TAGS ── */
-.tag-input-row { display: flex; gap: 8px; }
-.tag-input-row input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; font-family: inherit; }
-.tag-input-row input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,212,.1); }
+.service-input-row { display: flex; gap: 8px; align-items: center; }
+.service-input-row input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; font-family: inherit; background: #0f1b33; color: var(--text-light); }
+.service-input-row input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,212,.1); }
+.service-icon-picker { position: relative; flex-shrink: 0; }
+.service-icon-btn {
+  width: 44px; height: 44px; border-radius: 8px;
+  border: 1px solid var(--border); background: #0f1b33;
+  font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s;
+}
+.service-icon-btn:hover { border-color: var(--blue); }
+.service-icon-dropdown {
+  position: absolute; top: 50px; left: 0; z-index: 50;
+  background: #0f1b33; border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  width: 220px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+.service-icon-dropdown span {
+  font-size: 1.3rem; cursor: pointer; padding: 6px;
+  border-radius: 6px; text-align: center;
+  transition: background .15s;
+}
+.service-icon-dropdown span:hover { background: rgba(74,159,255,.2); }
+.service-icon-dropdown.hidden { display: none; }
 .btn-add-tag {
   background: var(--blue); color: var(--white); border: none;
-  padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; white-space: nowrap;
 }
 .btn-add-tag:hover { background: var(--blue-light); }
 .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; min-height: 36px; }
 .service-tag {
   display: flex; align-items: center; gap: 6px;
   background: rgba(26,111,212,.1); color: var(--blue);
-  padding: 6px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+  padding: 6px 12px; border-radius: 20px; font-size: 0.88rem; font-weight: 600;
 }
 .service-tag button {
   background: none; border: none; color: var(--blue); cursor: pointer;
