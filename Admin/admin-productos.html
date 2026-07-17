@@ -94,12 +94,21 @@
         </div>
         <div id="galleryPreview" class="gallery-preview"></div>
 
-        <div class="form-section-title">Video</div>
+        <div class="form-section-title">Videos</div>
+        
+        <div class="form-section-subtitle">URLs de video <span class="hint">YouTube, TikTok, Instagram</span></div>
         <div class="form-group">
-          <label>URL de video <span class="hint">YouTube, TikTok, Instagram</span></label>
           <input type="url" id="fVideo" placeholder="https://youtube.com/watch?v=..." />
           <div id="videoPreview" style="margin-top:10px;border-radius:10px;overflow:hidden"></div>
         </div>
+
+        <div class="form-section-subtitle">Subir videos (MP4, WebM) <span class="hint">Máx 100MB</span></div>
+        <div class="gallery-input-row">
+          <input type="file" id="videosFileInput" accept="video/mp4,video/webm" multiple />
+          <button type="button" class="btn-add-img" id="btnUploadVideos">📤 Subir videos</button>
+          <span id="videosStatus" style="font-size:.75rem;color:var(--blue)"></span>
+        </div>
+        <div id="videosPreview" class="videos-preview"></div>
 
         <div class="form-section-title">Link de compra</div>
         <div class="form-group">

@@ -4,6 +4,24 @@ const db = createClient(
   'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh'
 );
 
+function parseGallery(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      if (parsed) return [parsed];
+    } catch (e) {
+      const parts = trimmed.split(',').map(item => item.trim()).filter(Boolean);
+      return parts;
+    }
+    return [trimmed];
+  }
+  return [];
+}
+
 async function loadProduct() {
   const id = new URLSearchParams(location.search).get('id');
   if (!id) { document.getElementById('infoName').textContent = 'Producto no encontrado.'; return; }
@@ -13,7 +31,7 @@ async function loadProduct() {
 
   document.title = `${p.nombre} — Davila's Marketing`;
 
-  const imgs = Array.isArray(p.galeria) ? p.galeria : [];
+  const imgs = parseGallery(p.galeria);
 
   // ── HERO ──
   if (imgs[0]) {
@@ -28,16 +46,11 @@ async function loadProduct() {
   setMain(imgs[0] || null, p.video_url || null, !imgs.length && !!p.video_url);
 
   // ── THUMBNAILS ──
-  const thumbsRow = document.getElementById('thumbsRow');
-  const mediaItems = [
-    ...imgs.map((url, i) => ({ type: 'img', url, active: i === 0 })),
-    ...(p.video_url ? [{ type: 'video', url: p.video_url }] : []),
-  ];
+  const thumbContainer = document.getElementById('galleryThumbs');
+  const mediaItems = imgs.map((url, i) => ({ type: 'img', url, active: i === 0 }));
   if (mediaItems.length > 1) {
-    thumbsRow.innerHTML = mediaItems.map((t, i) =>
-      t.type === 'img'
-        ? `<div class="thumb ${t.active ? 'active' : ''}" onclick="switchMedia('img','${t.url}',this)"><img src="${t.url}" alt="" loading="lazy" /></div>`
-        : `<div class="thumb-video" onclick="switchMedia('video','${t.url}',this)">▶</div>`
+    thumbContainer.innerHTML = mediaItems.map((t) =>
+      `<button class="thumb ${t.active ? 'active' : ''}" type="button" onclick="switchMedia('img','${t.url}',this)"><img src="${t.url}" alt="" loading="lazy" /></button>`
     ).join('');
   }
 
@@ -78,10 +91,21 @@ async function loadProduct() {
   }
 
   // ── VIDEO SECTION (full width) ──
-  if (p.video_url) {
+  const uploadedVideos = Array.isArray(p.videos) ? p.videos : [];
+  const hasVideoUrl = !!p.video_url;
+  const hasUploadedVideos = uploadedVideos.length > 0;
+  
+  if (hasVideoUrl || hasUploadedVideos) {
     document.getElementById('videoSection').classList.remove('hidden');
-    document.getElementById('videoEmbed').innerHTML =
-      `<iframe src="${embedUrl(p.video_url)}" allowfullscreen loading="lazy"></iframe>`;
+    let videoHtml = '';
+    
+    if (hasVideoUrl) {
+      videoHtml = `<iframe src="${embedUrl(p.video_url)}" allowfullscreen loading="lazy"></iframe>`;
+    } else if (hasUploadedVideos) {
+      videoHtml = `<video controls style="width:100%;height:100%;object-fit:cover;"><source src="${uploadedVideos[0]}" type="video/mp4"></video>`;
+    }
+    
+    document.getElementById('videoEmbed').innerHTML = videoHtml;
   }
 
   // ── RELATED PRODUCTS ──
@@ -123,26 +147,34 @@ async function loadProduct() {
 function setMain(imgUrl, videoUrl, showVideo) {
   const imgEl   = document.getElementById('mainImg');
   const videoEl = document.getElementById('mainVideo');
-  const wrap    = document.getElementById('mainMediaWrap');
+  const wrap    = document.getElementById('galleryMain');
+  const zoomBtn = document.getElementById('galleryZoomBtn');
 
   if (showVideo && videoUrl) {
     imgEl.style.display   = 'none';
     videoEl.style.display = 'block';
-    videoEl.innerHTML     = `<iframe src="${embedUrl(videoUrl)}" allowfullscreen></iframe>`;
+    videoEl.innerHTML     = `<iframe src="${embedUrl(videoUrl)}" allowfullscreen loading="lazy"></iframe>`;
     wrap.style.aspectRatio = '16/9';
     wrap.style.cursor = 'default';
+    zoomBtn.style.display = 'none';
   } else if (imgUrl) {
     imgEl.src = imgUrl; imgEl.style.display = 'block';
     videoEl.style.display = 'none'; videoEl.innerHTML = '';
-    wrap.style.aspectRatio = '1/1';
+    wrap.style.aspectRatio = '16/9';
     wrap.style.cursor = 'zoom-in';
     wrap.onclick = () => openLightbox(imgUrl);
+    zoomBtn.style.display = 'flex';
+    zoomBtn.onclick = (e) => {
+      e.stopPropagation();
+      openLightbox(imgUrl);
+    };
   } else if (videoUrl) {
     imgEl.style.display   = 'none';
     videoEl.style.display = 'block';
-    videoEl.innerHTML     = `<iframe src="${embedUrl(videoUrl)}" allowfullscreen></iframe>`;
+    videoEl.innerHTML     = `<iframe src="${embedUrl(videoUrl)}" allowfullscreen loading="lazy"></iframe>`;
     wrap.style.aspectRatio = '16/9';
     wrap.style.cursor = 'default';
+    zoomBtn.style.display = 'none';
   }
 }
 

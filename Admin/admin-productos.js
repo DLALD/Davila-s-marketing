@@ -3,6 +3,7 @@ import { supabase } from './supabase-client.js';
 let products   = [];
 let businesses = [];
 let galleryUrls = [];
+let videoUrls   = [];
 let activeCat  = 'all';
 let search     = '';
 
@@ -92,9 +93,13 @@ function openAdd() {
   document.getElementById('modalTitle').textContent = 'Add Product';
   document.getElementById('productForm').reset();
   document.getElementById('editId').value = '';
-  galleryUrls = []; renderGalleryPreview();
+  galleryUrls = []; 
+  videoUrls = [];
+  renderGalleryPreview();
+  renderVideosPreview();
   document.getElementById('videoPreview').innerHTML = '';
   document.getElementById('galleryStatus').textContent = '';
+  document.getElementById('videosStatus').textContent = '';
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -113,10 +118,13 @@ window.openEdit = (id) => {
   document.getElementById('fVideo').value     = p.video_url   || '';
   document.getElementById('fLink').value      = p.link_compra || '';
   galleryUrls = Array.isArray(p.galeria) ? [...p.galeria] : [];
+  videoUrls = Array.isArray(p.videos) ? [...p.videos] : [];
   renderGalleryPreview();
+  renderVideosPreview();
   const src = embedUrl(p.video_url || '');
   document.getElementById('videoPreview').innerHTML = src ? `<iframe src="${src}" allowfullscreen></iframe>` : '';
   document.getElementById('galleryStatus').textContent = '';
+  document.getElementById('videosStatus').textContent = '';
   document.getElementById('modalOverlay').classList.add('open');
 };
 
@@ -143,6 +151,7 @@ document.getElementById('productForm').addEventListener('submit', async e => {
     video_url:   document.getElementById('fVideo').value.trim(),
     link_compra: document.getElementById('fLink').value.trim(),
     galeria:     galleryUrls,
+    videos:      videoUrls,
   };
   let error;
   if (id) { ({ error } = await supabase.from('productos').update(payload).eq('id', id)); }
@@ -197,6 +206,40 @@ async function uploadImage(file) {
   if (error) { console.error(error); return null; }
   return supabase.storage.from('negocios-imagenes').getPublicUrl(path).data.publicUrl;
 }
+
+// ── VIDEOS UPLOAD ──
+document.getElementById('btnUploadVideos').addEventListener('click', async () => {
+  const files = document.getElementById('videosFileInput').files;
+  if (!files.length) return;
+  const status = document.getElementById('videosStatus');
+  status.textContent = `Subiendo ${files.length} video(s)...`;
+  for (const file of files) {
+    const url = await uploadVideo(file);
+    if (url) videoUrls.push(url);
+  }
+  document.getElementById('videosFileInput').value = '';
+  status.textContent = '✓ Listo';
+  renderVideosPreview();
+});
+
+async function uploadVideo(file) {
+  if (file.size > 100 * 1024 * 1024) {
+    alert('Archivo demasiado grande. Máximo 100MB.');
+    return null;
+  }
+  const path = `videos/${Date.now()}-${Math.random().toString(36).slice(2)}.${file.name.split('.').pop()}`;
+  const { error } = await supabase.storage.from('negocios-imagenes').upload(path, file, { upsert: true });
+  if (error) { console.error(error); return null; }
+  return supabase.storage.from('negocios-imagenes').getPublicUrl(path).data.publicUrl;
+}
+
+function renderVideosPreview() {
+  document.getElementById('videosPreview').innerHTML = videoUrls.map((url, i) => `
+    <div class="video-thumb">
+      <button class="video-thumb-remove" onclick="removeVideo(${i})">✕</button>
+    </div>`).join('');
+}
+window.removeVideo = (i) => { videoUrls.splice(i, 1); renderVideosPreview(); };
 
 // ── VIDEO PREVIEW ──
 let vDebounce;
