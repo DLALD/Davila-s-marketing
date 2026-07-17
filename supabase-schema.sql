@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS negocios (
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS maps_url TEXT;
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS hero_settings JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS socials JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE negocios ADD COLUMN IF NOT EXISTS card_color JSONB DEFAULT '{}'::jsonb;
 
 -- ── TABLA: clientes (logos en el banner) ──
 CREATE TABLE IF NOT EXISTS clientes (

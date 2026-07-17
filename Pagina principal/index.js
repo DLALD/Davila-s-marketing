@@ -39,7 +39,7 @@ async function loadBusinesses() {
 
   const { data, error } = await db
     .from('negocios')
-    .select('id, name, description, category, hero_image, website, status')
+    .select('id, name, description, category, hero_image, website, status, card_color')
     .neq('status', 'inactive')
     .order('created_at', { ascending: false })
     .limit(6);
@@ -49,19 +49,34 @@ async function loadBusinesses() {
     return;
   }
 
-  grid.innerHTML = data.map(b => {
+  const DEFAULT_GRADIENTS = [
+    ['#f12711','#f5af19'],
+    ['#7F00FF','#E100FF'],
+    ['#3f2b96','#a8c0ff'],
+    ['#11998e','#38ef7d'],
+  ];
+
+  grid.innerHTML = data.map((b, i) => {
     const link = `../negocios/negocio.html?id=${b.id}`;
+    const colors = b.card_color || {};
+    const [dc1, dc2] = DEFAULT_GRADIENTS[i % 4];
+    const c1 = colors.c1 || dc1;
+    const c2 = colors.c2 || dc2;
+    const headerStyle = `background: linear-gradient(to bottom left, ${c1}, ${c2});`;
+    const btnStyle    = `background: linear-gradient(to left, ${c1}, ${c2});`;
+    const imgHtml = b.hero_image
+      ? `<img src="${b.hero_image}" alt="${b.name}" loading="lazy" />`
+      : '';
     return `
     <div class="business-card">
-      <div class="business-card-img">
-        <img src="${b.hero_image || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80'}"
-             alt="${b.name}" loading="lazy" />
+      <div class="business-card-header" style="${headerStyle}">
+        ${imgHtml}
       </div>
       <div class="business-card-body">
         <span class="business-tag">${b.category || 'Business'}</span>
         <h3><a href="${link}">${b.name}</a></h3>
         <p>${b.description || ''}</p>
-        <a href="${link}" class="btn-participate">VIEW BUSINESS →</a>
+        <a href="${link}" class="btn-participate" style="${btnStyle}"><div class="dots_border"></div>VIEW BUSINESS →</a>
       </div>
     </div>`;
   }).join('');
@@ -94,30 +109,64 @@ async function loadClients() {
 }
 
 // =============================================
-// LOAD ARTICLES FROM SUPABASE
+// LOAD ARTICLES + PRODUCTS FROM SUPABASE
 // =============================================
 async function loadArticles() {
   const grid = document.getElementById('articlesGrid');
 
-  const { data, error } = await db
-    .from('articulos')
-    .select('titulo, imagen_url, slug')
-    .eq('publicado', true)
-    .order('created_at', { ascending: false })
-    .limit(3);
+  const [articlesRes, productsRes] = await Promise.all([
+    db.from('articulos').select('titulo, imagen_url, slug, created_at')
+      .eq('publicado', true).order('created_at', { ascending: false }).limit(3),
+    db.from('negocios').select('name, products, created_at')
+      .neq('status', 'inactive').order('created_at', { ascending: false }),
+  ]);
 
-  if (error || !data || !data.length) {
-    grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1">No articles published yet.</p>';
+  const articles = (articlesRes.data || []).map(a => ({
+    type: 'article',
+    title: a.titulo,
+    image: a.imagen_url || 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=400&q=80',
+    by: "DAVILA'S MARKETING",
+    link: `articulo.html?slug=${a.slug}`,
+    created_at: a.created_at,
+  }));
+
+  const products = [];
+  for (const biz of (productsRes.data || [])) {
+    const prods = Array.isArray(biz.products) ? biz.products
+      : (typeof biz.products === 'string' ? JSON.parse(biz.products) : []);
+    for (const p of prods) {
+      products.push({
+        type: 'product',
+        title: p.nombre,
+        image: p.imagen_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80',
+        by: biz.name.toUpperCase(),
+        price: p.precio || '',
+        desc: p.descripcion || '',
+        link: p.link || '#',
+        created_at: biz.created_at,
+      });
+    }
+  }
+
+  const items = [...articles, ...products]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 6);
+
+  if (!items.length) {
+    grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1">No resources published yet.</p>';
     return;
   }
 
-  grid.innerHTML = data.map(a => `
+  grid.innerHTML = items.map(item => `
     <div class="article-card">
-      <img src="${a.imagen_url || 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=400&q=80'}" alt="${a.titulo}" loading="lazy" />
+      <img src="${item.image}" alt="${item.title}" loading="lazy" />
       <div class="article-card-body">
-        <p class="article-by">BY DAVILA'S MARKETING</p>
-        <h3>${a.titulo}</h3>
-        <a href="articulo.html?slug=${a.slug}" class="article-link">READ MORE →</a>
+        <p class="article-by">${item.type === 'product' ? '🛍️ ' : ''}BY ${item.by}${item.price ? ` &mdash; ${item.price}` : ''}</p>
+        <h3>${item.title}</h3>
+        ${item.desc ? `<p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px">${item.desc}</p>` : ''}
+        <a href="${item.link}" class="article-link" ${item.type === 'product' ? 'target="_blank"' : ''}>${
+          item.type === 'product' ? 'VIEW PRODUCT →' : 'READ MORE →'
+        }</a>
       </div>
     </div>`).join('');
 }

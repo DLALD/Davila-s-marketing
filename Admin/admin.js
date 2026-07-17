@@ -39,6 +39,16 @@ function resetTabs() {
   document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === 0));
 }
 
+// ── CARD COLOR PICKER ──
+function syncCardColorPreview() {
+  const c1 = document.getElementById('bizCardColor1').value;
+  const c2 = document.getElementById('bizCardColor2').value;
+  document.getElementById('cardColorPreview').style.background = `linear-gradient(to right, ${c1}, ${c2})`;
+}
+document.getElementById('bizCardColor1').addEventListener('input', syncCardColorPreview);
+document.getElementById('bizCardColor2').addEventListener('input', syncCardColorPreview);
+syncCardColorPreview();
+
 // ── CHAR COUNTER ──
 const descEl  = document.getElementById('bizDescription');
 const countEl = document.getElementById('descCount');
@@ -202,6 +212,54 @@ document.getElementById('btnAddService').addEventListener('click', addServiceTag
 document.getElementById('serviceInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addServiceTag(); }
 });
+
+// ── PRODUCTS ──
+let productTags = [];
+let pendingProductImageUrl = '';
+
+document.getElementById('productImgFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
+  const status = document.getElementById('productImgStatus');
+  status.textContent = 'Uploading...';
+  const url = await uploadImage(file);
+  pendingProductImageUrl = url || '';
+  status.textContent = url ? '\u2713 Ready' : '\u2717 Failed';
+});
+
+function renderProductTags() {
+  document.getElementById('productsList').innerHTML = productTags.map((p, i) => `
+    <span class="service-tag">
+      ${p.imagen_url ? `<img src="${p.imagen_url}" style="width:28px;height:28px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:4px" />` : ''}
+      <strong>${p.nombre}</strong>${p.precio ? ` &mdash; ${p.precio}` : ''}
+      <button onclick="removeProduct(${i})">\u2715</button>
+    </span>`).join('');
+  document.getElementById('bizProducts').value = JSON.stringify(productTags);
+}
+
+window.removeProduct = (i) => { productTags.splice(i, 1); renderProductTags(); };
+
+function addProduct() {
+  const nombre = document.getElementById('productName').value.trim();
+  if (!nombre) return;
+  const product = {
+    nombre,
+    descripcion: document.getElementById('productDesc').value.trim(),
+    precio:      document.getElementById('productPrice').value.trim(),
+    link:        document.getElementById('productLink').value.trim(),
+    imagen_url:  pendingProductImageUrl,
+  };
+  productTags.push(product);
+  document.getElementById('productName').value  = '';
+  document.getElementById('productDesc').value  = '';
+  document.getElementById('productPrice').value = '';
+  document.getElementById('productLink').value  = '';
+  document.getElementById('productImgFile').value = '';
+  document.getElementById('productImgStatus').textContent = '';
+  pendingProductImageUrl = '';
+  renderProductTags();
+}
+document.getElementById('btnAddProduct').addEventListener('click', addProduct);
 
 // ── REVIEWS ──
 let reviews = [];
@@ -411,7 +469,7 @@ async function renderList() {
   const { data, error } = await supabase.from('negocios').select('*').order('created_at', { ascending: false });
 
   if (error) {
-    container.innerHTML = `<div class="empty-state"><span>❌</span>Error: ${error.message}</div>`;
+    container.innerHTML = `<div class="empty-state"><span>❌</span>Error: ${error.message}<br><small style="opacity:.6">${error.details || error.hint || ''}</small></div>`;
     return;
   }
   if (!data.length) {
@@ -445,8 +503,12 @@ function openAdd() {
   document.getElementById('bizCategoryCustom').style.display = 'none';
   document.getElementById('heroPreview').innerHTML = '';
   document.getElementById('logoPreview').innerHTML = '';
+  document.getElementById('bizCardColor1').value = '#1a6fd4';
+  document.getElementById('bizCardColor2').value = '#3a8fe8';
+  syncCardColorPreview();
   galleryUrls = []; renderGalleryPreview();
   serviceTags = []; pendingServiceImageUrl = ''; renderServiceTags();
+  productTags = []; pendingProductImageUrl = ''; renderProductTags();
   reviews = []; renderReviews();
   socials = {}; renderSocials();
   resetTabs();
@@ -478,6 +540,12 @@ window.openEdit = async (id) => {
   document.getElementById('bizLogoUrlInput').value    = b.logo_url        || '';
   document.getElementById('bizHeroImage').value       = b.hero_image       || '';
   document.getElementById('bizCategoryCustom').style.display = 'none';
+
+  // Card colors
+  const colors = b.card_color || {};
+  document.getElementById('bizCardColor1').value = colors.c1 || '#1a6fd4';
+  document.getElementById('bizCardColor2').value = colors.c2 || '#3a8fe8';
+  syncCardColorPreview();
 
   // Socials
   socials = b.socials ? JSON.parse(JSON.stringify(b.socials)) : {};
@@ -527,6 +595,7 @@ window.openEdit = async (id) => {
 
   galleryUrls = b.gallery  || []; renderGalleryPreview();
   serviceTags = Array.isArray(b.services) ? JSON.parse(JSON.stringify(b.services)) : (typeof b.services === 'string' ? JSON.parse(b.services) : []); renderServiceTags();
+  productTags = Array.isArray(b.products) ? JSON.parse(JSON.stringify(b.products)) : (typeof b.products === 'string' ? JSON.parse(b.products) : []); renderProductTags();
   reviews     = b.reviews  ? JSON.parse(JSON.stringify(b.reviews)) : []; renderReviews();
 
   countEl.textContent = `${b.description?.length || 0} / 160`;
@@ -565,7 +634,9 @@ document.getElementById('bizForm').addEventListener('submit', async e => {
     })(),
     gallery:          galleryUrls,
     services:         serviceTags,
+    products:         productTags,
     reviews:          reviews,
+    card_color:       { c1: document.getElementById('bizCardColor1').value, c2: document.getElementById('bizCardColor2').value },
     status:           document.querySelector('input[name="bizStatus"]:checked')?.value || 'active',
   };
 

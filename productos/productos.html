@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Productos — Davila's Marketing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="productos.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-main">DAVILA'S</span>
+      <span class="logo-sub">Products</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../Admin/admin.html" class="nav-item">🏢 Businesses</a>
+      <a href="productos.html" class="nav-item active">🛍️ Products</a>
+      <a href="../Pagina principal/index.html" class="nav-item" target="_blank">🌐 View Site</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <header class="admin-header">
+      <div class="header-left">
+        <h1>Products</h1>
+        <div id="catFilter" class="filter-pills"></div>
+      </div>
+      <div class="header-right">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar producto..." class="search-input" />
+        <button class="btn-add" id="btnAdd">+ Add Product</button>
+      </div>
+    </header>
+
+    <div id="productsGrid" class="products-grid"></div>
+  </main>
+
+  <!-- ── MODAL ADD/EDIT ── -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Product</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+
+      <form id="productForm" class="modal-form">
+        <input type="hidden" id="editId" />
+
+        <!-- Basic -->
+        <div class="form-section-title">Información básica</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" id="fNombre" placeholder="Nombre del producto" required />
+          </div>
+          <div class="form-group">
+            <label>Precio</label>
+            <input type="text" id="fPrecio" placeholder="$29.99" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoría</label>
+            <input type="text" id="fCategoria" placeholder="e.g. Auto Detailing, Ropa..." />
+          </div>
+          <div class="form-group">
+            <label>Stock / Disponibilidad</label>
+            <input type="text" id="fStock" placeholder="e.g. En stock, Agotado..." />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="fDesc" rows="4" placeholder="Descripción detallada del producto..."></textarea>
+        </div>
+
+        <!-- Business (optional) -->
+        <div class="form-section-title">Negocio asociado <span class="hint">opcional</span></div>
+        <div class="form-group">
+          <div class="select-wrapper">
+            <select id="fNegocio">
+              <option value="">— Sin negocio asociado —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Gallery -->
+        <div class="form-section-title">Galería de fotos</div>
+        <div class="gallery-upload-row">
+          <input type="file" id="galleryFileInput" accept="image/*" multiple />
+          <button type="button" class="btn-upload" id="btnUploadGallery">📤 Subir</button>
+          <span id="galleryUploadStatus" class="upload-status"></span>
+        </div>
+        <div id="galleryPreview" class="gallery-preview"></div>
+
+        <!-- Video -->
+        <div class="form-section-title">Video</div>
+        <div class="form-group">
+          <label>URL de video <span class="hint">TikTok, YouTube, Instagram Reel</span></label>
+          <input type="url" id="fVideo" placeholder="https://www.youtube.com/watch?v=... o https://tiktok.com/..." />
+          <div id="videoPreview" class="video-preview"></div>
+        </div>
+
+        <!-- Buy link -->
+        <div class="form-section-title">Link de compra</div>
+        <div class="form-group">
+          <label>URL donde se puede comprar</label>
+          <input type="url" id="fLink" placeholder="https://..." />
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="btnCancel">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Guardar producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── DETAIL MODAL (Amazon-style) ── -->
+  <div class="modal-overlay" id="detailOverlay">
+    <div class="detail-modal">
+      <button class="modal-close" id="detailClose">✕</button>
+      <div class="detail-layout">
+
+        <!-- Left: media -->
+        <div class="detail-media">
+          <div class="detail-main-img-wrap">
+            <img id="detailMainImg" src="" alt="" />
+            <div id="detailMainVideo" class="detail-video-wrap"></div>
+          </div>
+          <div id="detailThumbs" class="detail-thumbs"></div>
+        </div>
+
+        <!-- Right: info -->
+        <div class="detail-info">
+          <span id="detailBiz" class="detail-biz-tag"></span>
+          <h2 id="detailName"></h2>
+          <div id="detailPrice" class="detail-price"></div>
+          <div id="detailStock" class="detail-stock"></div>
+          <p id="detailDesc" class="detail-desc"></p>
+          <div class="detail-actions">
+            <a id="detailLink" href="#" target="_blank" class="btn-buy">🛒 Comprar ahora</a>
+          </div>
+          <div class="detail-admin-actions">
+            <button id="detailEditBtn" class="btn-edit-sm">✏️ Editar</button>
+            <button id="detailDeleteBtn" class="btn-delete-sm">🗑️ Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="productos.js"></script>
+</body>
+</html>

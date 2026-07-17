@@ -186,7 +186,7 @@ async function loadBusiness() {
   // Decode HTML entities
   mapsUrl = mapsUrl.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
 
-  const makeQueryEmbed = query => `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+  const makeQueryEmbed = query => `https://www.google.com/maps?q=${encodeURIComponent(query)}&t=k&output=embed`;
   const isEmbedUrl = url => url.includes('/maps/embed') || url.includes('output=embed');
   const normalizeMapsUrl = url => {
     try {

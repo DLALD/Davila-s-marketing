@@ -96,13 +96,17 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 
 /* ── TABS ── */
 .form-tabs {
-  display: flex; gap: 0; border-bottom: 2px solid #e0e4ef;
-  padding: 0 24px; position: sticky; top: 61px; background: var(--white); z-index: 1;
+  display: flex; gap: 0;
+  padding: 0 12px; position: sticky; top: 61px; background: var(--white); z-index: 1;
+  overflow-x: auto; overflow-y: visible; flex-wrap: nowrap;
+  border-bottom: 2px solid #e0e4ef;
 }
+.form-tabs::-webkit-scrollbar { height: 3px; }
+.form-tabs::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 2px; }
 .tab-btn {
-  padding: 12px 16px; border: none; background: none; font-size: 0.82rem; font-weight: 700;
-  color: #cbd5e1; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px;
-  transition: all .2s; white-space: nowrap;
+  padding: 12px 10px; border: none; background: none; font-size: 0.8rem; font-weight: 700;
+  color: #cbd5e1; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: all .2s; white-space: nowrap; flex-shrink: 0;
 }
 .tab-btn.active { color: var(--blue-light); border-bottom-color: var(--blue-light); }
 .tab-btn:hover:not(.active) { color: var(--text-light); }
@@ -402,6 +406,17 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 }
 
 /* ── COMPRESS PANEL ── */
+.color-picker-row {
+  display: flex; align-items: center; gap: 10px;
+}
+.color-picker-row input[type="color"] {
+  width: 44px; height: 44px; border: none; border-radius: 8px;
+  cursor: pointer; padding: 2px; background: none;
+}
+.color-preview {
+  flex: 1; height: 44px; border-radius: 8px;
+  border: 1px solid var(--border);
+}
 .compress-panel {
   background: rgba(74,159,255,.06);
   border: 1px solid rgba(74,159,255,.18);

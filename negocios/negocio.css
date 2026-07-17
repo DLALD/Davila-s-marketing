@@ -417,7 +417,7 @@ body { font-family: 'Inter', sans-serif; background: var(--gray); color: var(--t
 .map-title {
   font-size: 0.72rem; font-weight: 700; letter-spacing: 2.5px;
   text-transform: uppercase; color: var(--blue);
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 .map-title .site-icon { width: 16px; height: 16px; object-fit: contain; }
 .map-wrap {
