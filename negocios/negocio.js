@@ -9,13 +9,16 @@ const ICONS_PATH = '../Logos de la pagina/';
 const SITE_ICONS = [
   { key: 'apoyo',                label: 'Apoyo' },
   { key: 'carro',                label: 'Carro' },
+  { key: 'comunicacion',         label: 'Comunicación' },
   { key: 'conexion',             label: 'Conexión' },
   { key: 'estadisticas',         label: 'Estadísticas' },
+  { key: 'flecha-hacia-arriba',  label: 'Flecha Arriba' },
   { key: 'flecha-izquierda',     label: 'Flecha Izquierda' },
   { key: 'lavado-de-coches',     label: 'Lavado de Coches' },
   { key: 'llamada-telefonica',   label: 'Llamada Telefónica' },
   { key: 'mapas-de-google',      label: 'Mapas de Google' },
   { key: 'marcador-de-posicion', label: 'Marcador de Posición' },
+  { key: 'reloj',                label: 'Reloj' },
   { key: 'spray',                label: 'Spray' },
 ];
 const SITE_ICON_KEYS = SITE_ICONS.map(i => i.key);
@@ -81,7 +84,7 @@ async function loadBusiness() {
   if (b.phone)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">${iconImg('llamada-telefonica', 'Teléfono')}</div><div><strong>Phone</strong><a href="tel:${b.phone}">${b.phone}</a></div></div>`);
   if (b.email)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">✉️</div><div><strong>Email</strong><a href="mailto:${b.email}">${b.email}</a></div></div>`);
   if (b.address) barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">${iconImg('marcador-de-posicion', 'Dirección')}</div><div><strong>Address</strong>${b.address}</div></div>`);
-  if (b.hours)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">🕐</div><div><strong>Hours</strong>${b.hours}</div></div>`);
+  if (b.hours)   barParts.push(`<div class="contact-bar-item"><div class="contact-bar-icon">${iconImg('reloj', 'Horario')}</div><div><strong>Hours</strong>${b.hours}</div></div>`);
 
   // Redes sociales en el contact bar
   const socialBarEntries = Object.entries(socialsObj).filter(([k, v]) => v && k !== 'website' && SOCIAL_META[k]);
@@ -145,7 +148,7 @@ async function loadBusiness() {
   if (b.phone)   rows.push(`<div class="contact-row"><span class="ci">${iconImg('llamada-telefonica', 'Teléfono')}</span><a href="tel:${b.phone}">${b.phone}</a></div>`);
   if (b.email)   rows.push(`<div class="contact-row"><span class="ci">✉️</span><a href="mailto:${b.email}">${b.email}</a></div>`);
   if (b.address) rows.push(`<div class="contact-row"><span class="ci">${iconImg('marcador-de-posicion', 'Dirección')}</span><span>${b.address}</span></div>`);
-  if (b.hours)   rows.push(`<div class="contact-row"><span class="ci">🕐</span><span>${b.hours}</span></div>`);
+  if (b.hours)   rows.push(`<div class="contact-row"><span class="ci">${iconImg('reloj', 'Horario')}</span><span>${b.hours}</span></div>`);
   document.getElementById('contactRows').innerHTML = rows.join('');
 
   // Contact action buttons
@@ -228,10 +231,20 @@ async function loadBusiness() {
     document.getElementById('bizServices').innerHTML = services.map(s => {
       const icon = typeof s === 'object' ? s.icon : '✓';
       const name = typeof s === 'object' ? s.name : s;
+      const desc = typeof s === 'object' ? (s.description || '') : '';
+      const img  = typeof s === 'object' ? (s.image || '') : '';
       const iconHtml = SITE_ICON_KEYS.includes(icon)
         ? iconImg(icon, name)
         : `<span class="service-item-icon">${icon}</span>`;
-      return `<div class="service-item">${iconHtml}<span class="service-item-name">${name}</span></div>`;
+      return `<div class="service-item">
+        ${img ? `<img class="service-item-bg" src="${img}" alt="${name}" />` : ''}
+        <div class="service-item-overlay"></div>
+        <div class="service-item-icon-wrap">${iconHtml}</div>
+        <div class="service-item-body">
+          <div class="service-item-name">${name}</div>
+          ${desc ? `<div class="service-item-desc">${desc}</div>` : ''}
+        </div>
+      </div>`;
     }).join('');
   }
 

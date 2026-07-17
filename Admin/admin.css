@@ -296,6 +296,18 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .service-input-row { display: flex; gap: 8px; align-items: center; }
 .service-input-row input { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; font-family: inherit; background: #0f1b33; color: var(--text-light); }
 .service-input-row input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,212,.1); }
+.service-extra-row {
+  display: flex; gap: 8px; align-items: center; margin-top: 8px;
+}
+.service-extra-row input[type="text"] {
+  flex: 1; border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; font-size: 0.85rem; font-family: inherit;
+  background: #0f1b33; color: var(--text-light);
+}
+.service-extra-row input[type="text"]:focus { outline: none; border-color: var(--blue); }
+.service-img-upload { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.service-img-upload input[type="file"] { font-size: 0.78rem; color: var(--text-muted); max-width: 160px; }
+#serviceImgStatus { font-size: 0.75rem; color: var(--blue); white-space: nowrap; }
 .service-icon-picker { position: relative; flex-shrink: 0; }
 .service-icon-btn {
   width: 44px; height: 44px; border-radius: 8px;

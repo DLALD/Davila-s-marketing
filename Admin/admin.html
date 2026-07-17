@@ -254,6 +254,13 @@
             <input type="text" id="serviceInput" placeholder="Nombre del servicio..." />
             <button type="button" class="btn-add-tag" id="btnAddService">Agregar</button>
           </div>
+          <div class="service-extra-row">
+            <input type="text" id="serviceDesc" placeholder="Descripción o precio (opcional)..." />
+            <div class="service-img-upload">
+              <input type="file" id="serviceImgFile" accept="image/*" />
+              <span id="serviceImgStatus"></span>
+            </div>
+          </div>
           <div class="tags-container" id="servicesTags"></div>
           <input type="hidden" id="bizServices" />
 

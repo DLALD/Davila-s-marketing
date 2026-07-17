@@ -8,13 +8,16 @@ const ICONS_PATH = '../Logos de la pagina/';
 const SITE_ICONS = [
   { key: 'apoyo',                label: 'Apoyo' },
   { key: 'carro',                label: 'Carro' },
+  { key: 'comunicacion',         label: 'Comunicación' },
   { key: 'conexion',             label: 'Conexión' },
   { key: 'estadisticas',         label: 'Estadísticas' },
+  { key: 'flecha-hacia-arriba',  label: 'Flecha Arriba' },
   { key: 'flecha-izquierda',     label: 'Flecha Izquierda' },
   { key: 'lavado-de-coches',     label: 'Lavado de Coches' },
   { key: 'llamada-telefonica',   label: 'Llamada Telefónica' },
   { key: 'mapas-de-google',      label: 'Mapas de Google' },
   { key: 'marcador-de-posicion', label: 'Marcador de Posición' },
+  { key: 'reloj',                label: 'Reloj' },
   { key: 'spray',                label: 'Spray' },
 ];
 const SITE_ICON_KEYS = SITE_ICONS.map(i => i.key);
@@ -131,6 +134,18 @@ document.getElementById('btnAddGallery').addEventListener('click', async () => {
 // ── SERVICE TAGS ──
 let serviceTags = [];
 let selectedServiceIcon = SITE_ICONS[0].key;
+let pendingServiceImageUrl = '';
+
+// Upload service image on file select
+document.getElementById('serviceImgFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
+  const status = document.getElementById('serviceImgStatus');
+  status.textContent = 'Uploading...';
+  const url = await uploadImage(file);
+  pendingServiceImageUrl = url || '';
+  status.textContent = url ? '✓ Image ready' : '✗ Failed';
+});
 
 // Populate the icon dropdown with the real icon files (from "Logos de la pagina")
 const serviceIconDropdownEl = document.getElementById('serviceIconDropdown');
@@ -171,8 +186,16 @@ function addServiceTag() {
   const input = document.getElementById('serviceInput');
   const val = input.value.trim();
   if (!val) return;
-  serviceTags.push({ icon: selectedServiceIcon, name: val });
+  const desc = document.getElementById('serviceDesc').value.trim();
+  const tag = { icon: selectedServiceIcon, name: val };
+  if (desc) tag.description = desc;
+  if (pendingServiceImageUrl) tag.image = pendingServiceImageUrl;
+  serviceTags.push(tag);
   input.value = '';
+  document.getElementById('serviceDesc').value = '';
+  document.getElementById('serviceImgFile').value = '';
+  document.getElementById('serviceImgStatus').textContent = '';
+  pendingServiceImageUrl = '';
   renderServiceTags();
 }
 document.getElementById('btnAddService').addEventListener('click', addServiceTag);
@@ -423,7 +446,7 @@ function openAdd() {
   document.getElementById('heroPreview').innerHTML = '';
   document.getElementById('logoPreview').innerHTML = '';
   galleryUrls = []; renderGalleryPreview();
-  serviceTags = []; renderServiceTags();
+  serviceTags = []; pendingServiceImageUrl = ''; renderServiceTags();
   reviews = []; renderReviews();
   socials = {}; renderSocials();
   resetTabs();
@@ -503,7 +526,7 @@ window.openEdit = async (id) => {
   document.getElementById('bizHeroSettings').value = JSON.stringify(heroSettings || {});
 
   galleryUrls = b.gallery  || []; renderGalleryPreview();
-  serviceTags = b.services || []; renderServiceTags();
+  serviceTags = Array.isArray(b.services) ? JSON.parse(JSON.stringify(b.services)) : (typeof b.services === 'string' ? JSON.parse(b.services) : []); renderServiceTags();
   reviews     = b.reviews  ? JSON.parse(JSON.stringify(b.reviews)) : []; renderReviews();
 
   countEl.textContent = `${b.description?.length || 0} / 160`;
@@ -516,6 +539,7 @@ function closeModal() { document.getElementById('modalOverlay').classList.remove
 // ── SAVE ──
 document.getElementById('bizForm').addEventListener('submit', async e => {
   e.preventDefault();
+  renderServiceTags(); // asegurar que bizServices esté sincronizado
   const id = document.getElementById('bizIndex').value;
   const catSelect = document.getElementById('bizCategory');
   const category = catSelect.value === 'Other'
