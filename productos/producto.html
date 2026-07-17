@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Producto — Davila's Marketing</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="producto.css" />
 </head>
 <body>
@@ -12,24 +13,28 @@
   <!-- NAV -->
   <nav class="nav" id="nav">
     <a href="../Pagina principal/index.html" class="nav-logo">DAVILA'S</a>
-    <div class="nav-center" id="navCenter"></div>
+    <div class="nav-tabs">
+      <a href="#story" class="nav-tab">Galería</a>
+      <a href="#info" class="nav-tab">Info</a>
+      <a href="#buy" class="nav-cta">Comprar ahora</a>
+    </div>
     <a href="productos.html" class="nav-back">← Productos</a>
   </nav>
 
-  <!-- STICKY BUY BAR (appears on scroll) -->
+  <!-- STICKY BUY BAR -->
   <div class="sticky-bar hidden" id="stickyBar">
     <span id="stickyName"></span>
     <span id="stickyPrice" class="sticky-price"></span>
-    <a id="stickyBtn" href="#" target="_blank" class="sticky-buy-btn">Comprar ahora</a>
+    <a id="stickyBtn" href="#" target="_blank" class="sticky-buy-btn hidden">Comprar ahora</a>
   </div>
 
-  <!-- ① HERO — fullscreen image -->
-  <section class="hero-section" id="heroSection">
-    <div class="hero-media" id="heroMedia">
-      <img id="heroBg" src="" alt="" />
+  <!-- ① HERO -->
+  <section class="hero-section">
+    <span class="hero-eyebrow" id="heroTag"></span>
+    <div class="hero-figure" id="heroFigure">
+      <img id="heroImg" src="" alt="" />
     </div>
-    <div class="hero-content">
-      <span class="hero-cat" id="heroTag"></span>
+    <div class="hero-text">
       <h1 id="heroName"></h1>
       <p class="hero-sub" id="heroSub"></p>
       <div class="hero-price-wrap">
@@ -38,52 +43,29 @@
       </div>
       <div class="hero-cta">
         <a id="heroBuyBtn" href="#" target="_blank" class="btn-primary-xl hidden">Comprar ahora</a>
-        <a href="#gallery" class="btn-ghost-xl">Ver galería ↓</a>
-      </div>
-    </div>
-    <div class="hero-scroll-hint">
-      <span></span>
-    </div>
-  </section>
-
-  <!-- ② GALLERY — horizontal scroll thumbnails + main viewer -->
-  <section class="gallery-section" id="gallery">
-    <div class="gallery-viewer">
-      <div class="gallery-main" id="galleryMain">
-        <img id="mainImg" src="" alt="" />
-        <div id="mainVideo" class="main-video"></div>
-        <button class="gallery-zoom-btn" id="galleryZoomBtn">⤢</button>
-      </div>
-      <div class="gallery-thumbs" id="galleryThumbs"></div>
-    </div>
-  </section>
-
-  <!-- ③ PRODUCT INFO — two column -->
-  <section class="info-section">
-    <div class="info-wrap">
-      <div class="info-left">
-        <span class="info-cat" id="infoTag"></span>
-        <h2 id="infoName"></h2>
-        <div class="info-price-row">
-          <span class="info-price" id="infoPrice"></span>
-          <span class="info-stock" id="infoStock"></span>
-        </div>
-        <div class="info-divider"></div>
-        <p class="info-desc" id="infoDesc"></p>
-        <div class="info-biz" id="infoBiz"></div>
-      </div>
-      <div class="info-right">
-        <div class="buy-card">
-          <div class="buy-card-price" id="buyCardPrice"></div>
-          <div class="buy-card-stock" id="buyCardStock"></div>
-          <a id="btnBuy" href="#" target="_blank" class="btn-buy hidden">🛒 Comprar ahora</a>
-          <a href="productos.html" class="btn-browse">Ver más productos</a>
-        </div>
+        <a href="#story" class="btn-ghost-xl">Ver galería ↓</a>
       </div>
     </div>
   </section>
 
-  <!-- ④ VIDEO — cinematic full width -->
+  <!-- ② SPEC STRIP -->
+  <section class="spec-strip">
+    <div class="spec-strip-inner" id="specStrip"></div>
+  </section>
+
+  <!-- ③ STORY SECTIONS (built from gallery + description) -->
+  <div id="story"></div>
+
+  <!-- ④ FULL DESCRIPTION / BUSINESS -->
+  <section class="quote-section hidden" id="quoteSection">
+    <div class="quote-inner">
+      <span class="quote-eyebrow">Acerca del producto</span>
+      <p class="quote-text" id="quoteText"></p>
+      <p class="quote-biz hidden" id="infoBiz"></p>
+    </div>
+  </section>
+
+  <!-- ⑤ VIDEO — cinematic full width -->
   <section class="video-section hidden" id="videoSection">
     <div class="video-label">
       <span class="section-eyebrow">En acción</span>
@@ -92,32 +74,45 @@
     <div class="video-cinema" id="videoEmbed"></div>
   </section>
 
-  <!-- ⑤ RELATED -->
+  <!-- ⑥ BUY PANEL -->
+  <section class="buy-panel" id="buy">
+    <div class="buy-panel-inner">
+      <span class="buy-panel-eyebrow">Listo para comprar</span>
+      <h3 id="buyPanelName"></h3>
+      <div class="buy-panel-price" id="buyPanelPrice"></div>
+      <div class="buy-panel-stock" id="buyPanelStock"></div>
+      <a id="btnBuy" href="#" target="_blank" class="btn-buy hidden">Comprar ahora</a>
+      <a href="productos.html" class="btn-browse">Ver más productos →</a>
+    </div>
+  </section>
+
+  <!-- ⑦ RELATED -->
   <section class="related-section hidden" id="relatedSection">
     <div class="related-inner">
-      <span class="section-eyebrow">También te puede gustar</span>
+      <span class="section-eyebrow" style="color:var(--mid)">También te puede gustar</span>
       <h3>Más productos</h3>
       <div class="related-grid" id="relatedGrid"></div>
     </div>
   </section>
 
-  <!-- ⑥ POWERED BY -->
+  <!-- ⑧ POWERED BY -->
   <section class="powered-section">
     <div class="powered-inner">
-      <p class="powered-label">Powered by</p>
       <a href="../Pagina principal/index.html" class="powered-logo">DAVILA'S <span>Marketing</span></a>
       <p class="powered-text">Ayudamos a negocios locales a crecer con presencia digital profesional.</p>
-      <a href="../Pagina principal/index.html" class="powered-cta">Conocer más →</a>
     </div>
   </section>
 
   <footer class="footer">
-    © 2025 Davila's Marketing · <a href="productos.html">Productos</a>
+    <p>Las imágenes del producto son ilustrativas y pueden diferir del artículo real. Precios y disponibilidad sujetos a cambio sin previo aviso.</p>
+    <p>© 2025 Davila's Marketing · <a href="productos.html">Productos</a></p>
   </footer>
 
   <!-- LIGHTBOX -->
   <div class="lightbox hidden" id="lightbox">
     <button class="lightbox-close" id="lightboxClose">✕</button>
+    <button class="lightbox-nav lightbox-prev hidden" id="lightboxPrev">‹</button>
+    <button class="lightbox-nav lightbox-next hidden" id="lightboxNext">›</button>
     <div class="lightbox-inner">
       <img id="lightboxImg" src="" alt="" />
     </div>
