@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Productos — Davila's Marketing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="admin-productos.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-main">DAVILA'S</span>
+      <span class="logo-sub">Admin Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="admin.html" class="nav-item">🏢 Businesses</a>
+      <a href="admin-productos.html" class="nav-item active">🛍️ Products</a>
+      <a href="../productos/productos.html" class="nav-item" target="_blank">🌐 View Store</a>
+      <a href="../Pagina principal/index.html" class="nav-item" target="_blank">🌐 View Site</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1>Products</h1>
+      <button class="btn-add" id="btnAdd">+ Add Product</button>
+    </header>
+
+    <!-- Filter pills + search -->
+    <div class="prod-toolbar">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar..." class="search-input" />
+      <div id="catFilter" class="filter-pills"></div>
+    </div>
+
+    <section id="productsGrid" class="businesses-list"></section>
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Product</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+
+      <form id="productForm" class="biz-form" style="display:flex;flex-direction:column;gap:16px">
+        <input type="hidden" id="editId" />
+
+        <div class="form-section-title">Información básica</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input type="text" id="fNombre" placeholder="Nombre del producto" required />
+          </div>
+          <div class="form-group">
+            <label>Precio</label>
+            <input type="text" id="fPrecio" placeholder="$29.99" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Categoría</label>
+            <input type="text" id="fCategoria" placeholder="e.g. Auto Detailing, Ropa..." />
+          </div>
+          <div class="form-group">
+            <label>Stock / Disponibilidad</label>
+            <input type="text" id="fStock" placeholder="En stock, Agotado..." />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="fDesc" rows="3" placeholder="Descripción detallada..."></textarea>
+        </div>
+
+        <div class="form-section-title">Negocio asociado <span class="hint">opcional</span></div>
+        <div class="form-group">
+          <div class="select-wrapper">
+            <select id="fNegocio">
+              <option value="">— Sin negocio asociado —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">Galería de fotos</div>
+        <div class="gallery-input-row">
+          <input type="file" id="galleryFileInput" accept="image/*" multiple />
+          <button type="button" class="btn-add-img" id="btnUploadGallery">📤 Subir</button>
+          <span id="galleryStatus" style="font-size:.75rem;color:var(--blue)"></span>
+        </div>
+        <div id="galleryPreview" class="gallery-preview"></div>
+
+        <div class="form-section-title">Video</div>
+        <div class="form-group">
+          <label>URL de video <span class="hint">YouTube, TikTok, Instagram</span></label>
+          <input type="url" id="fVideo" placeholder="https://youtube.com/watch?v=..." />
+          <div id="videoPreview" style="margin-top:10px;border-radius:10px;overflow:hidden"></div>
+        </div>
+
+        <div class="form-section-title">Link de compra</div>
+        <div class="form-group">
+          <input type="url" id="fLink" placeholder="https://..." />
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="btnCancel">Cancelar</button>
+          <button type="submit" class="btn-save">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script type="module" src="admin-productos.js"></script>
+</body>
+</html>

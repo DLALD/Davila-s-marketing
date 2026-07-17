@@ -117,8 +117,8 @@ async function loadArticles() {
   const [articlesRes, productsRes] = await Promise.all([
     db.from('articulos').select('titulo, imagen_url, slug, created_at')
       .eq('publicado', true).order('created_at', { ascending: false }).limit(3),
-    db.from('negocios').select('name, products, created_at')
-      .neq('status', 'inactive').order('created_at', { ascending: false }),
+    db.from('productos').select('id, nombre, precio, descripcion, galeria, link_compra, created_at')
+      .order('created_at', { ascending: false }).limit(3),
   ]);
 
   const articles = (articlesRes.data || []).map(a => ({
@@ -130,23 +130,15 @@ async function loadArticles() {
     created_at: a.created_at,
   }));
 
-  const products = [];
-  for (const biz of (productsRes.data || [])) {
-    const prods = Array.isArray(biz.products) ? biz.products
-      : (typeof biz.products === 'string' ? JSON.parse(biz.products) : []);
-    for (const p of prods) {
-      products.push({
-        type: 'product',
-        title: p.nombre,
-        image: p.imagen_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80',
-        by: biz.name.toUpperCase(),
-        price: p.precio || '',
-        desc: p.descripcion || '',
-        link: p.link || '#',
-        created_at: biz.created_at,
-      });
-    }
-  }
+  const products = (productsRes.data || []).map(p => ({
+    type: 'product',
+    title: p.nombre,
+    image: (Array.isArray(p.galeria) && p.galeria[0]) || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80',
+    price: p.precio || '',
+    desc: p.descripcion || '',
+    link: `../productos/producto.html?id=${p.id}`,
+    created_at: p.created_at,
+  }));
 
   const items = [...articles, ...products]
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -161,12 +153,10 @@ async function loadArticles() {
     <div class="article-card">
       <img src="${item.image}" alt="${item.title}" loading="lazy" />
       <div class="article-card-body">
-        <p class="article-by">${item.type === 'product' ? '🛍️ ' : ''}BY ${item.by}${item.price ? ` &mdash; ${item.price}` : ''}</p>
+        <p class="article-by">${item.type === 'product' ? '🛍️ PRODUCTO' : "BY DAVILA'S MARKETING"}${item.price ? ` &mdash; ${item.price}` : ''}</p>
         <h3>${item.title}</h3>
-        ${item.desc ? `<p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px">${item.desc}</p>` : ''}
-        <a href="${item.link}" class="article-link" ${item.type === 'product' ? 'target="_blank"' : ''}>${
-          item.type === 'product' ? 'VIEW PRODUCT →' : 'READ MORE →'
-        }</a>
+        ${item.desc ? `<p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.desc}</p>` : ''}
+        <a href="${item.link}" class="article-link">${item.type === 'product' ? 'VER PRODUCTO →' : 'READ MORE →'}</a>
       </div>
     </div>`).join('');
 }
