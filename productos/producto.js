@@ -177,7 +177,7 @@ async function loadProduct() {
       const text = section && section.text ? `<p class="content-section-text">${section.text}</p>` : '';
       const imgUrl = (section && (section.image || section.img || section.image_url)) || '';
       const imageHtml = imgUrl ? `<div class="content-section-media"><img src="${imgUrl}" alt="${(section && section.title) || p.nombre}" loading="lazy" /></div>` : '';
-      const styleClass = (section && section.style) || 'card';
+      const styleClass = (section && section.style) || 'split';
       const animationClass = (section && section.animation) || 'fade-up';
       const imgPos = (section && section.image_position) || 'right';
       const bgMode = (section && section.bg_mode) || 'default';
@@ -209,7 +209,7 @@ async function loadProduct() {
       const outsideClass = imgUrl && (imgPos === 'left' || imgPos === 'right') ? `outside-${imgPos}` : '';
       let markup = '';
       if (styleClass === 'split') {
-        markup = `<article class="content-section-card split ${animationClass} ${outsideClass} ${bgClass}">${imgUrl ? imageHtml : ''}${contentHtml}</article>`;
+        markup = `<article class="content-section-card split ${animationClass} ${outsideClass} ${bgClass}" style="padding:40px 48px;">${imgUrl ? imageHtml : ''}${contentHtml}</article>`;
       } else if (styleClass === 'highlight') {
         markup = `<article class="content-section-card highlight ${animationClass} ${outsideClass} ${bgClass}">${contentHtml}${imgUrl ? imageHtml : ''}</article>`;
       } else {
@@ -223,7 +223,7 @@ async function loadProduct() {
             markup = `<article class="content-section-card card ${animationClass} outside-right ${bgClass}"><div class="outside-wrap">${contentHtml}${imgBlock}</div></article>`;
           }
         } else {
-          markup = `<article class="content-section-card card ${animationClass} ${bgClass}">${imageHtml}${contentHtml}</article>`;
+          markup = `<article class="content-section-card split ${animationClass} ${bgClass}" style="padding:40px 48px;">${imageHtml}${contentHtml}</article>`;
         }
       }
 

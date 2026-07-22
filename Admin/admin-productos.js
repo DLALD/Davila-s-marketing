@@ -353,7 +353,72 @@ window.editContentSection = (i) => {
   document.getElementById('sectionImagePosition').value = s.image_position || 'right';
   document.getElementById('sectionType').value = s.type || 'section';
   document.getElementById('sectionBg') && (document.getElementById('sectionBg').value = s.bg_mode || 'default');
-  document.getElementById('sectionPreview').innerHTML = pendingSectionImageUrl ? `<img src="${pendingSectionImageUrl}" alt="preview" />` : '';
+
+  // Función para cambiar la imagen de una sección
+window.changeSectionImage = async () => {
+  if (editingSectionIndex < 0) {
+    showToast('❌ Primero edita una sección');
+    return;
+  }
+  
+  // Crear input de archivo
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = async function() {
+    const file = this.files[0];
+    if (!file) return;
+    
+    showToast('📤 Subiendo imagen...');
+    
+    // Subir la imagen usando la función existente
+    const url = await uploadImage(file);
+    if (url) {
+      // Actualizar la sección
+      if (contentSections[editingSectionIndex]) {
+        contentSections[editingSectionIndex].image = url;
+        pendingSectionImageUrl = url;
+        
+        // Re-renderizar la previsualización
+        editContentSection(editingSectionIndex);
+        renderContentSections();
+        
+        showToast('✓ Imagen actualizada');
+      }
+    } else {
+      showToast('❌ Error al subir la imagen');
+    }
+  };
+  input.click();
+};
+  
+  // Mostrar imagen con botón de cambio
+  const preview = document.getElementById('sectionPreview');
+  if (pendingSectionImageUrl) {
+    preview.innerHTML = `
+      <div style="position:relative;display:inline-block;">
+        <img src="${pendingSectionImageUrl}" alt="preview" style="max-width:200px;border-radius:12px;border:2px solid #e0e0e0;" />
+        <button type="button" id="btnChangeSectionImage" class="btn-change-image" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.8);color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.7rem;cursor:pointer;backdrop-filter:blur(4px);">🔄 Cambiar</button>
+      </div>
+    `;
+    // Agregar evento al botón de cambiar imagen
+    const changeBtn = document.getElementById('btnChangeSectionImage');
+    if (changeBtn) {
+      changeBtn.addEventListener('click', () => changeSectionImage());
+    }
+  } else {
+    preview.innerHTML = `
+      <div style="background:#f5f5f5;border-radius:12px;padding:20px;text-align:center;color:#999;border:2px dashed #ddd;">
+        <p style="margin:0;font-size:0.85rem;">📷 Sin imagen</p>
+        <button type="button" id="btnChangeSectionImage" class="btn-change-image" style="margin-top:8px;background:#333;color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:0.7rem;cursor:pointer;">➕ Agregar imagen</button>
+      </div>
+    `;
+    const changeBtn = document.getElementById('btnChangeSectionImage');
+    if (changeBtn) {
+      changeBtn.addEventListener('click', () => changeSectionImage());
+    }
+  }
+  
   const btn = document.getElementById('btnAddContentSection');
   btn.textContent = 'Actualizar sección';
   btn.classList.add('editing');
