@@ -1,7 +1,8 @@
 const { createClient } = supabase;
 const db = createClient(
   'https://oumaxwaclbmpvlvdwcnk.supabase.co',
-  'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh'
+  'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh',
+  { realtime: { enabled: false } }
 );
 
 // ── SITE ICONS (carpeta "Logos de la pagina", hermana de /negocios y /admin) ──
@@ -102,6 +103,34 @@ async function loadBusiness() {
 
   // About
   document.getElementById('bizDescription').textContent = b.description_full || b.description || '';
+
+  // Content sections
+  const contentSections = (b.services || []).filter(s => s && typeof s === 'object' && s.kind === 'section');
+  if (contentSections.length) {
+    document.getElementById('contentSectionsCard').classList.remove('hidden');
+    document.getElementById('contentSectionsList').innerHTML = contentSections.map((section, index) => {
+      const title = section.title ? `<h3>${section.title}</h3>` : '';
+      const text = section.text ? `<p>${section.text}</p>` : '';
+      const img = section.image ? `<img src="${section.image}" alt="${section.title || 'Section image'}" loading="lazy" />` : '';
+      const styleClass = section.style || 'card';
+      const animationClass = section.animation || 'fade-up';
+      return `<article class="content-section-card ${styleClass} ${animationClass}" data-index="${index}">
+        ${img ? `<div class="content-section-media">${img}</div>` : ''}
+        <div class="content-section-body">${title}${text}</div>
+      </article>`;
+    }).join('');
+
+    const sectionEls = document.querySelectorAll('.content-section-card');
+    const contentObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          contentObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    sectionEls.forEach(el => contentObserver.observe(el));
+  }
 
   // Gallery
   const gallery = b.gallery || [];
@@ -223,7 +252,7 @@ async function loadBusiness() {
   }
 
   // Services
-  const services = b.services || [];
+  const services = (b.services || []).filter(s => !(s && typeof s === 'object' && s.kind === 'section'));
   if (services.length) {
     document.getElementById('servicesCard').classList.remove('hidden');
     const titleEl = document.getElementById('servicesTitle');

@@ -86,6 +86,119 @@
           </div>
         </div>
 
+        <div class="form-section-title">Secciones de contenido</div>
+        <div class="content-section-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Título</label>
+              <input type="text" id="sectionTitle" placeholder="e.g. ¿Por qué elegirnos?" />
+            </div>
+            <div class="form-group">
+              <label>Estilo</label>
+              <div class="select-wrapper">
+                <select id="sectionStyle">
+                  <option value="card">Card</option>
+                  <option value="split">Split</option>
+                  <option value="highlight">Highlight</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Texto descriptivo</label>
+            <textarea id="sectionText" rows="3" placeholder="Agrega una descripción para esta sección..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Imagen</label>
+              <input type="file" id="sectionImgFile" accept="image/*" />
+              <div class="img-preview section-preview" id="sectionPreview"></div>
+            </div>
+            <div class="form-group">
+              <label>Animación</label>
+              <div class="select-wrapper">
+                <select id="sectionAnimation">
+                  <option value="fade-up">Fade up</option>
+                  <option value="slide-left">Slide left</option>
+                  <option value="slide-right">Slide right</option>
+                  <option value="zoom-in">Zoom in</option>
+                </select>
+              </div>
+            </div>
+          </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Posición imagen</label>
+                <div class="select-wrapper">
+                  <select id="sectionImagePosition">
+                    <option value="right">Derecha</option>
+                    <option value="left">Izquierda</option>
+                    <option value="inline">Inline</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Tipo de bloque</label>
+                <div class="select-wrapper">
+                  <select id="sectionType">
+                    <option value="section">Sección</option>
+                    <option value="table">Tabla</option>
+                    <option value="cards">Cards</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fondo / Borde</label>
+                <div class="select-wrapper">
+                  <select id="sectionBg">
+                    <option value="default">Por defecto</option>
+                    <option value="transparent-bg">Fondo transparente</option>
+                    <option value="transparent-border">Borde transparente</option>
+                    <option value="transparent-all">Fondo y borde transparentes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          <button type="button" class="btn-add-tag" id="btnAddContentSection">+ Agregar sección</button>
+        </div>
+        <div class="tags-container" id="contentSectionsList" style="margin-top:10px"></div>
+
+        <!-- Table builder -->
+        <div class="form-section-title">Crear tabla de características</div>
+        <div class="form-row" style="gap:8px;align-items:center">
+          <input type="text" id="tableKey" placeholder="Clave (p.ej. Peso)" />
+          <input type="text" id="tableValue" placeholder="Valor (p.ej. 200g)" />
+          <button type="button" class="btn-add-tag" id="btnAddTableRow">+ Fila</button>
+        </div>
+        <div id="tableRowsList" style="margin-top:8px"></div>
+        <button type="button" class="btn-add-tag" id="btnAddTableSection" style="margin-top:8px">Agregar tabla</button>
+
+        <!-- Cards builder -->
+        <div class="form-section-title">Crear grupo de cards</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Card título</label>
+            <input type="text" id="cardTitle" />
+          </div>
+          <div class="form-group">
+            <label>Card texto</label>
+            <input type="text" id="cardText" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Imagen card</label>
+            <input type="file" id="cardImgFile" accept="image/*" />
+          </div>
+          <div class="form-group">
+            <button type="button" class="btn-add-tag" id="btnAddCard">+ Añadir card</button>
+          </div>
+        </div>
+        <div id="cardsPreview" style="margin-top:8px"></div>
+        <button type="button" class="btn-add-tag" id="btnAddCardsSection" style="margin-top:8px">Agregar cards</button>
+
         <div class="form-section-title">Galería de fotos</div>
         <div class="gallery-input-row">
           <input type="file" id="galleryFileInput" accept="image/*" multiple />

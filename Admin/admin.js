@@ -145,6 +145,12 @@ document.getElementById('btnAddGallery').addEventListener('click', async () => {
 let serviceTags = [];
 let selectedServiceIcon = SITE_ICONS[0].key;
 let pendingServiceImageUrl = '';
+let contentSections = [];
+let pendingSectionImageUrl = '';
+
+function syncBusinessServices() {
+  document.getElementById('bizServices').value = JSON.stringify([...serviceTags, ...contentSections]);
+}
 
 // Upload service image on file select
 document.getElementById('serviceImgFile').addEventListener('change', async function () {
@@ -187,7 +193,7 @@ function renderServiceTags() {
     const iconHtml = SITE_ICON_KEYS.includes(icon) ? iconImg(icon, name) : icon;
     return `<span class="service-tag">${iconHtml} ${name} <button onclick="removeTag(${i})">✕</button></span>`;
   }).join('');
-  document.getElementById('bizServices').value = JSON.stringify(serviceTags);
+  syncBusinessServices();
 }
 
 window.removeTag = (i) => { serviceTags.splice(i, 1); renderServiceTags(); };
@@ -212,6 +218,57 @@ document.getElementById('btnAddService').addEventListener('click', addServiceTag
 document.getElementById('serviceInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addServiceTag(); }
 });
+
+// ── CONTENT SECTIONS ──
+document.getElementById('sectionImgFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
+  const preview = document.getElementById('sectionPreview');
+  preview.innerHTML = '<p style="color:#aaa;font-size:.8rem">Uploading...</p>';
+  const url = await uploadImage(file);
+  pendingSectionImageUrl = url || '';
+  preview.innerHTML = url ? `<img src="${url}" alt="Section preview" />` : '<p style="color:#e53e3e;font-size:.8rem">Upload failed</p>';
+});
+
+function renderContentSections() {
+  document.getElementById('contentSectionsList').innerHTML = contentSections.map((section, i) => `
+    <div class="content-section-item">
+      <div class="content-section-item-header">
+        <strong>${section.title || 'Section'}</strong>
+        <button class="btn-remove-review" onclick="removeContentSection(${i})">✕</button>
+      </div>
+      <p>${section.text || ''}</p>
+      ${section.image ? `<img src="${section.image}" alt="${section.title || 'Content section'}" class="content-section-thumb" />` : ''}
+      <div class="content-section-meta">${section.style || 'card'} · ${section.animation || 'fade-up'}</div>
+    </div>`).join('');
+  syncBusinessServices();
+}
+
+window.removeContentSection = (i) => { contentSections.splice(i, 1); renderContentSections(); };
+
+function addContentSection() {
+  const title = document.getElementById('sectionTitle').value.trim();
+  const text = document.getElementById('sectionText').value.trim();
+  if (!title && !text) return;
+  const section = {
+    kind: 'section',
+    title,
+    text,
+    image: pendingSectionImageUrl || '',
+    style: document.getElementById('sectionStyle').value,
+    animation: document.getElementById('sectionAnimation').value,
+  };
+  contentSections.push(section);
+  document.getElementById('sectionTitle').value = '';
+  document.getElementById('sectionText').value = '';
+  document.getElementById('sectionStyle').value = 'card';
+  document.getElementById('sectionAnimation').value = 'fade-up';
+  document.getElementById('sectionImgFile').value = '';
+  document.getElementById('sectionPreview').innerHTML = '';
+  pendingSectionImageUrl = '';
+  renderContentSections();
+}
+document.getElementById('btnAddContentSection').addEventListener('click', addContentSection);
 
 // ── PRODUCTS ──
 let productTags = [];
@@ -508,6 +565,7 @@ function openAdd() {
   syncCardColorPreview();
   galleryUrls = []; renderGalleryPreview();
   serviceTags = []; pendingServiceImageUrl = ''; renderServiceTags();
+  contentSections = []; pendingSectionImageUrl = ''; renderContentSections();
   productTags = []; pendingProductImageUrl = ''; renderProductTags();
   reviews = []; renderReviews();
   socials = {}; renderSocials();
@@ -594,7 +652,20 @@ window.openEdit = async (id) => {
   document.getElementById('bizHeroSettings').value = JSON.stringify(heroSettings || {});
 
   galleryUrls = b.gallery  || []; renderGalleryPreview();
-  serviceTags = Array.isArray(b.services) ? JSON.parse(JSON.stringify(b.services)) : (typeof b.services === 'string' ? JSON.parse(b.services) : []); renderServiceTags();
+  const parsedServices = Array.isArray(b.services)
+    ? b.services
+    : (typeof b.services === 'string' ? JSON.parse(b.services) : []);
+  serviceTags = [];
+  contentSections = [];
+  parsedServices.forEach(item => {
+    if (item && typeof item === 'object' && item.kind === 'section') {
+      contentSections.push(JSON.parse(JSON.stringify(item)));
+    } else if (item && typeof item === 'object') {
+      serviceTags.push(JSON.parse(JSON.stringify(item)));
+    }
+  });
+  renderServiceTags();
+  renderContentSections();
   productTags = Array.isArray(b.products) ? JSON.parse(JSON.stringify(b.products)) : (typeof b.products === 'string' ? JSON.parse(b.products) : []); renderProductTags();
   reviews     = b.reviews  ? JSON.parse(JSON.stringify(b.reviews)) : []; renderReviews();
 
@@ -608,7 +679,8 @@ function closeModal() { document.getElementById('modalOverlay').classList.remove
 // ── SAVE ──
 document.getElementById('bizForm').addEventListener('submit', async e => {
   e.preventDefault();
-  renderServiceTags(); // asegurar que bizServices esté sincronizado
+  renderServiceTags();
+  renderContentSections();
   const id = document.getElementById('bizIndex').value;
   const catSelect = document.getElementById('bizCategory');
   const category = catSelect.value === 'Other'
@@ -633,7 +705,7 @@ document.getElementById('bizForm').addEventListener('submit', async e => {
       try { return JSON.parse(document.getElementById('bizHeroSettings').value || '{}'); } catch(e) { return {}; }
     })(),
     gallery:          galleryUrls,
-    services:         serviceTags,
+    services:         [...serviceTags, ...contentSections],
     products:         productTags,
     reviews:          reviews,
     card_color:       { c1: document.getElementById('bizCardColor1').value, c2: document.getElementById('bizCardColor2').value },

@@ -4,6 +4,11 @@ let products   = [];
 let businesses = [];
 let galleryUrls = [];
 let videoUrls   = [];
+let contentSections = [];
+let pendingSectionImageUrl = '';
+let editingSectionIndex = -1;
+let tableRows = [];
+let cardsTemp = [];
 let activeCat  = 'all';
 let search     = '';
 
@@ -95,7 +100,10 @@ function openAdd() {
   document.getElementById('editId').value = '';
   galleryUrls = []; 
   videoUrls = [];
+  contentSections = [];
+  pendingSectionImageUrl = '';
   renderGalleryPreview();
+  renderContentSections();
   renderVideosPreview();
   document.getElementById('videoPreview').innerHTML = '';
   document.getElementById('galleryStatus').textContent = '';
@@ -119,7 +127,10 @@ window.openEdit = (id) => {
   document.getElementById('fLink').value      = p.link_compra || '';
   galleryUrls = Array.isArray(p.galeria) ? [...p.galeria] : [];
   videoUrls = Array.isArray(p.videos) ? [...p.videos] : [];
+  contentSections = Array.isArray(p.content_sections) ? JSON.parse(JSON.stringify(p.content_sections)) : [];
+  pendingSectionImageUrl = '';
   renderGalleryPreview();
+  renderContentSections();
   renderVideosPreview();
   const src = embedUrl(p.video_url || '');
   document.getElementById('videoPreview').innerHTML = src ? `<iframe src="${src}" allowfullscreen></iframe>` : '';
@@ -138,6 +149,28 @@ window.deleteProduct = async (id) => {
 };
 
 // ── SAVE ──
+async function saveProduct(payload, id) {
+  const operation = id
+    ? supabase.from('productos').update(payload).eq('id', id)
+    : supabase.from('productos').insert(payload);
+
+  const { error } = await operation;
+  if (!error) return { error: null };
+
+  if (error?.message && /(content_sections|videos|column)/i.test(error.message)) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.content_sections;
+    delete fallbackPayload.videos;
+    const fallbackOperation = id
+      ? supabase.from('productos').update(fallbackPayload).eq('id', id)
+      : supabase.from('productos').insert(fallbackPayload);
+    const fallbackResult = await fallbackOperation;
+    return fallbackResult;
+  }
+
+  return { error };
+}
+
 document.getElementById('productForm').addEventListener('submit', async e => {
   e.preventDefault();
   const id = document.getElementById('editId').value;
@@ -152,10 +185,10 @@ document.getElementById('productForm').addEventListener('submit', async e => {
     link_compra: document.getElementById('fLink').value.trim(),
     galeria:     galleryUrls,
     videos:      videoUrls,
+    content_sections: contentSections,
   };
-  let error;
-  if (id) { ({ error } = await supabase.from('productos').update(payload).eq('id', id)); }
-  else    { ({ error } = await supabase.from('productos').insert(payload)); }
+  console.log('Saving product payload content_sections:', payload.content_sections);
+  const { error } = await saveProduct(payload, id);
   if (error) { showToast('❌ ' + error.message); return; }
   closeModal();
   await loadProducts(); buildCatFilter(); render();
@@ -206,6 +239,160 @@ async function uploadImage(file) {
   if (error) { console.error(error); return null; }
   return supabase.storage.from('negocios-imagenes').getPublicUrl(path).data.publicUrl;
 }
+
+// ── CONTENT SECTIONS ──
+document.getElementById('sectionImgFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
+  const preview = document.getElementById('sectionPreview');
+  preview.innerHTML = '<p style="color:#aaa;font-size:.8rem">Subiendo...</p>';
+  const url = await uploadImage(file);
+  pendingSectionImageUrl = url || '';
+  preview.innerHTML = url ? `<img src="${url}" alt="Section preview" />` : '<p style="color:#e53e3e;font-size:.8rem">Error al subir</p>';
+});
+
+// Card image upload for card builder
+document.getElementById('cardImgFile').addEventListener('change', async function () {
+  const file = this.files[0];
+  if (!file) return;
+  const url = await uploadImage(file);
+  document.getElementById('cardImgFile').value = '';
+  document.getElementById('cardsPreview').innerHTML += `<div class="card-thumb"><img src="${url}" alt="card" /><div class="card-meta">${document.getElementById('cardTitle').value || ''}</div></div>`;
+  cardsTemp.push({ title: document.getElementById('cardTitle').value || '', text: document.getElementById('cardText').value || '', image: url });
+  document.getElementById('cardTitle').value = ''; document.getElementById('cardText').value = '';
+});
+
+// Table row builder
+document.getElementById('btnAddTableRow').addEventListener('click', () => {
+  const k = document.getElementById('tableKey').value.trim();
+  const v = document.getElementById('tableValue').value.trim();
+  if (!k || !v) return;
+  tableRows.push({ key: k, value: v });
+  document.getElementById('tableKey').value = '';
+  document.getElementById('tableValue').value = '';
+  renderTableRows();
+});
+
+function renderTableRows() {
+  document.getElementById('tableRowsList').innerHTML = tableRows.map((r, i) =>
+    `<div class="table-row-item">${r.key}: ${r.value} <button type="button" onclick="removeTableRow(${i})">✕</button></div>`
+  ).join('');
+}
+window.removeTableRow = (i) => { tableRows.splice(i,1); renderTableRows(); };
+
+// Add table as a content section
+document.getElementById('btnAddTableSection').addEventListener('click', () => {
+  if (!tableRows.length) return;
+  contentSections.push({ type: 'table', rows: JSON.parse(JSON.stringify(tableRows)) });
+  tableRows = [];
+  renderTableRows();
+  renderContentSections();
+});
+
+// Cards builder
+document.getElementById('btnAddCard').addEventListener('click', () => {
+  // rely on file input handler to push into cardsTemp; allow empty placeholder
+  const title = document.getElementById('cardTitle').value.trim();
+  const text = document.getElementById('cardText').value.trim();
+  if (!title && !text) return;
+  // create placeholder card without image if none uploaded yet
+  cardsTemp.push({ title, text, image: '' });
+  document.getElementById('cardTitle').value = '';
+  document.getElementById('cardText').value = '';
+  renderCardsPreview();
+});
+
+function renderCardsPreview() {
+  document.getElementById('cardsPreview').innerHTML = cardsTemp.map((c, i) =>
+    `<div class="card-preview-item">${c.image ? `<img src="${c.image}" />` : ''}<div class="card-preview-meta"><strong>${c.title}</strong><div>${c.text}</div></div><button type="button" onclick="removeCardTemp(${i})">✕</button></div>`
+  ).join('');
+}
+window.removeCardTemp = (i) => { cardsTemp.splice(i,1); renderCardsPreview(); };
+
+document.getElementById('btnAddCardsSection').addEventListener('click', () => {
+  if (!cardsTemp.length) return;
+  contentSections.push({ type: 'cards', cards: JSON.parse(JSON.stringify(cardsTemp)) });
+  cardsTemp = [];
+  renderCardsPreview();
+  renderContentSections();
+});
+
+function renderContentSections() {
+  document.getElementById('contentSectionsList').innerHTML = contentSections.map((section, i) => {
+    const sideClass = (section && section.style === 'highlight') ? 'thumb-left' : 'thumb-right';
+    const thumb = section && section.image ? `<div class="thumb-outside"><img src="${section.image}" alt="${section.title || 'Content section'}" class="content-section-thumb" /></div>` : '';
+    const previewClass = section && section.bg_mode ? `preview-${section.bg_mode}` : '';
+    return `
+    <div class="content-section-item ${sideClass} ${previewClass}">
+      ${thumb}
+      <div class="content-section-body-inner">
+        <div class="content-section-item-header">
+          <strong>${section.title || 'Sección'}</strong>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn-edit-section" onclick="editContentSection(${i})">✏️</button>
+            <button type="button" class="btn-remove-review" onclick="removeContentSection(${i})">✕</button>
+          </div>
+        </div>
+        <p>${section.text || ''}</p>
+        <div class="content-section-meta">${section.style || 'card'} · ${section.animation || 'fade-up'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.removeContentSection = (i) => { contentSections.splice(i, 1); renderContentSections(); };
+
+window.editContentSection = (i) => {
+  const s = contentSections[i];
+  if (!s) return;
+  editingSectionIndex = i;
+  document.getElementById('sectionTitle').value = s.title || '';
+  document.getElementById('sectionText').value = s.text || '';
+  document.getElementById('sectionStyle').value = s.style || 'card';
+  document.getElementById('sectionAnimation').value = s.animation || 'fade-up';
+  pendingSectionImageUrl = s.image || '';
+  document.getElementById('sectionImagePosition').value = s.image_position || 'right';
+  document.getElementById('sectionType').value = s.type || 'section';
+  document.getElementById('sectionBg') && (document.getElementById('sectionBg').value = s.bg_mode || 'default');
+  document.getElementById('sectionPreview').innerHTML = pendingSectionImageUrl ? `<img src="${pendingSectionImageUrl}" alt="preview" />` : '';
+  const btn = document.getElementById('btnAddContentSection');
+  btn.textContent = 'Actualizar sección';
+  btn.classList.add('editing');
+};
+
+document.getElementById('btnAddContentSection').addEventListener('click', () => {
+  const title = document.getElementById('sectionTitle').value.trim();
+  const text = document.getElementById('sectionText').value.trim();
+  if (!title && !text) return;
+  const newSection = {
+    title,
+    text,
+    image: pendingSectionImageUrl || '',
+    style: document.getElementById('sectionStyle').value,
+    image_position: document.getElementById('sectionImagePosition').value || 'right',
+    type: document.getElementById('sectionType').value || 'section',
+    bg_mode: document.getElementById('sectionBg') ? document.getElementById('sectionBg').value : 'default',
+    animation: document.getElementById('sectionAnimation').value,
+  };
+  if (editingSectionIndex >= 0) {
+    contentSections[editingSectionIndex] = newSection;
+    editingSectionIndex = -1;
+    const btn = document.getElementById('btnAddContentSection');
+    btn.textContent = '+ Agregar sección';
+    btn.classList.remove('editing');
+  } else {
+    contentSections.push(newSection);
+  }
+  document.getElementById('sectionTitle').value = '';
+  document.getElementById('sectionText').value = '';
+  document.getElementById('sectionStyle').value = 'card';
+  document.getElementById('sectionImagePosition').value = 'right';
+  document.getElementById('sectionType').value = 'section';
+  document.getElementById('sectionAnimation').value = 'fade-up';
+  document.getElementById('sectionImgFile').value = '';
+  document.getElementById('sectionPreview').innerHTML = '';
+  pendingSectionImageUrl = '';
+  renderContentSections();
+});
 
 // ── VIDEOS UPLOAD ──
 document.getElementById('btnUploadVideos').addEventListener('click', async () => {
@@ -265,7 +452,13 @@ function embedUrl(url) {
 document.getElementById('searchInput').addEventListener('input', e => { search = e.target.value; render(); });
 
 // ── MODAL ──
-function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  // reset editing state for sections
+  editingSectionIndex = -1;
+  const btn = document.getElementById('btnAddContentSection');
+  if (btn) { btn.textContent = '+ Agregar sección'; btn.classList.remove('editing'); }
+}
 document.getElementById('btnAdd').addEventListener('click', openAdd);
 document.getElementById('modalClose').addEventListener('click', closeModal);
 document.getElementById('btnCancel').addEventListener('click', closeModal);

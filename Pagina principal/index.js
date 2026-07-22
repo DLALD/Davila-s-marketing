@@ -4,7 +4,8 @@
 const { createClient } = supabase;
 const db = createClient(
   'https://oumaxwaclbmpvlvdwcnk.supabase.co',
-  'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh'
+  'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh',
+  { realtime: { enabled: false } }
 );
 
 // =============================================

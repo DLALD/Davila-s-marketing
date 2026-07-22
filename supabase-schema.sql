@@ -28,11 +28,29 @@ CREATE TABLE IF NOT EXISTS negocios (
   created_at       TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS productos (
+  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  nombre        TEXT NOT NULL,
+  precio        TEXT,
+  categoria     TEXT,
+  stock         TEXT,
+  descripcion   TEXT,
+  negocio_id    UUID,
+  video_url     TEXT,
+  link_compra   TEXT,
+  galeria       JSONB DEFAULT '[]'::jsonb,
+  videos        JSONB DEFAULT '[]'::jsonb,
+  content_sections JSONB DEFAULT '[]'::jsonb,
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+
 -- Migraciones para tablas existentes
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS maps_url TEXT;
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS hero_settings JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS socials JSONB DEFAULT '{}'::jsonb;
 ALTER TABLE negocios ADD COLUMN IF NOT EXISTS card_color JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS content_sections JSONB DEFAULT '[]'::jsonb;
 
 -- ── TABLA: clientes (logos en el banner) ──
 CREATE TABLE IF NOT EXISTS clientes (

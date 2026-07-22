@@ -55,3 +55,45 @@
   font-size: 0.85rem; font-weight: 600; color: #333; margin: 12px 0 8px 0;
   text-transform: uppercase; letter-spacing: 0.5px;
 }
+
+/* Content section list */
+.content-section-item {
+  border: 1px solid rgba(0,0,0,.06); padding: 12px; border-radius: 10px; margin-bottom: 10px;
+  background: #fff; display: flex; gap: 12px; align-items: flex-start;
+}
+.content-section-item { position: relative; padding: 18px 20px; }
+.content-section-item img.content-section-thumb { width: 92px; height: 68px; object-fit: cover; border-radius: 8px; display:block }
+.content-section-item-header { display:flex; align-items:center; justify-content:space-between; width:100%; }
+.content-section-item-header strong { font-size: 0.95rem; }
+.content-section-meta { font-size: .78rem; color: #666; margin-top:8px }
+
+.btn-edit-section, .btn-remove-review { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding:6px 8px; border-radius:8px; cursor:pointer; font-weight:700 }
+.btn-edit-section:hover, .btn-remove-review:hover { background: var(--blue); color:#fff; border-color:var(--blue) }
+.btn-add-tag { background: var(--blue); color:#fff; border:none; padding:10px 12px; border-radius:8px; cursor:pointer; font-weight:700 }
+.btn-add-tag.editing { background: var(--green); }
+
+/* Thumb placed outside card */
+.thumb-outside { position: relative; width: 110px; flex: 0 0 110px; }
+.thumb-right { display: flex; align-items: center; gap: 12px; }
+.thumb-right .thumb-outside { order: 2; margin-left: 6px; }
+.thumb-left { display: flex; align-items: center; gap: 12px; }
+.thumb-left .thumb-outside { order: 0; margin-right: 6px; }
+
+/* ensure body inner has space so outside thumb doesn't overlap text */
+.content-section-body-inner { min-height: 84px; flex: 1 1 auto; }
+
+@media (max-width: 800px) {
+  .thumb-outside { display: none; }
+  .content-section-item { padding: 12px !important }
+}
+
+/* Table & cards builder previews */
+.table-row-item { background: rgba(0,0,0,.06); padding: 8px 10px; border-radius: 8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center }
+.card-preview-item { display:flex; gap:8px; align-items:center; border:1px solid rgba(0,0,0,.06); padding:8px; border-radius:8px; margin-bottom:6px }
+.card-preview-item img { width:72px; height:56px; object-fit:cover; border-radius:6px }
+.card-preview-meta { font-size: .9rem }
+
+/* Preview classes for bg_mode */
+.content-section-item.preview-transparent-bg { background: transparent; border-color: transparent; box-shadow: none }
+.content-section-item.preview-transparent-border { border-color: transparent; box-shadow: none }
+.content-section-item.preview-transparent-all { background: transparent; border-color: transparent; box-shadow: none }

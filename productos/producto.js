@@ -1,8 +1,48 @@
 const { createClient } = supabase;
+// Disable realtime on public pages to avoid automatic push updates during admin edits
 const db = createClient(
   'https://oumaxwaclbmpvlvdwcnk.supabase.co',
-  'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh'
+  'sb_publishable_amKjWarZp3n4NVbczuzbig_-u0toExh',
+  { realtime: { enabled: false } }
 );
+
+// --- Debug helpers: detect and (temporarily) block automatic reloads ---
+(function installReloadGuards() {
+  try {
+    // Log navigation type on load
+    window.addEventListener('load', () => {
+      try {
+        const nav = performance.getEntriesByType('navigation')[0];
+        console.log('NAVIGATION TYPE:', nav ? nav.type : 'unknown');
+      } catch (e) { console.log('nav type error', e); }
+    });
+
+    // Override programmatic reloads
+    if (window.location && typeof window.location.reload === 'function') {
+      const origReload = window.location.reload.bind(window.location);
+      window.location.reload = function reloadBlocker() {
+        console.warn('Blocked call to location.reload()');
+        console.trace();
+        // do not call original reload to avoid refresh while debugging
+      };
+    }
+
+    // Warn and block unloads triggered by scripts (will trigger a browser prompt)
+    window.addEventListener('beforeunload', (e) => {
+      console.warn('beforeunload fired — blocking to capture cause');
+      // Modern browsers require setting returnValue to show prompt
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }, { capture: true });
+
+    // Log visibility and pagehide events
+    document.addEventListener('visibilitychange', () => console.log('visibilitychange', document.visibilityState));
+    window.addEventListener('pagehide', (ev) => console.log('pagehide', ev));
+  } catch (err) {
+    console.error('installReloadGuards error', err);
+  }
+})();
 
 let galleryImages = [];
 let lightboxIndex = 0;
@@ -110,6 +150,86 @@ async function loadProduct() {
   storyEl.querySelectorAll('.story-figure').forEach(fig => {
     fig.addEventListener('click', () => openLightbox(parseInt(fig.dataset.index, 10)));
   });
+
+  // ── CONTENT SECTIONS ──
+  function normalizeSections(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // not JSON, fallthrough
+      }
+    }
+    return [];
+  }
+
+  const contentSections = normalizeSections(p.content_sections);
+  console.log('producto: content_sections ->', contentSections);
+  if (contentSections.length) {
+    const container = document.getElementById('contentSectionsContainer');
+    document.getElementById('contentSectionsSection').classList.remove('hidden');
+    container.innerHTML = contentSections.map(section => {
+      const type = section && section.type ? section.type : (section && (section.rows || section.cards) ? (section.rows ? 'table' : 'cards') : 'section');
+      const title = section && section.title ? `<h4 class="content-section-title">${section.title}</h4>` : '';
+      const text = section && section.text ? `<p class="content-section-text">${section.text}</p>` : '';
+      const imgUrl = (section && (section.image || section.img || section.image_url)) || '';
+      const imageHtml = imgUrl ? `<div class="content-section-media"><img src="${imgUrl}" alt="${(section && section.title) || p.nombre}" loading="lazy" /></div>` : '';
+      const styleClass = (section && section.style) || 'card';
+      const animationClass = (section && section.animation) || 'fade-up';
+      const imgPos = (section && section.image_position) || 'right';
+      const bgMode = (section && section.bg_mode) || 'default';
+      const bgClass = bgMode && bgMode !== 'default' ? `bg-mode-${bgMode}` : '';
+
+      // Table type
+      if (type === 'table' && Array.isArray(section.rows)) {
+        const rowsHtml = section.rows.map(r => `<tr><td class="tbl-key">${r.key}</td><td class="tbl-val">${r.value}</td></tr>`).join('');
+        return `<article class="content-section-card table ${animationClass} ${bgClass}">
+          <div class="content-section-body">${title}<table class="product-specs">${rowsHtml}</table></div>
+        </article>`;
+      }
+
+      // Cards type
+      if (type === 'cards' && Array.isArray(section.cards)) {
+        const cardsInner = section.cards.map(c => `
+          <div class="prod-card">
+            ${c.image ? `<div class="prod-card-img"><img src="${c.image}" alt="${c.title || ''}" loading="lazy" /></div>` : ''}
+            <div class="prod-card-body"><strong>${c.title || ''}</strong><div>${c.text || ''}</div></div>
+          </div>`).join('');
+        return `<article class="content-section-card cards ${animationClass} ${bgClass}">
+          ${title}
+          <div class="cards-grid">${cardsInner}</div>
+        </article>`;
+      }
+
+      // Default section (text + image). Image can be placed outside left/right
+      const contentHtml = `<div class="content-section-body">${title}${text}</div>`;
+      const outsideClass = imgUrl && (imgPos === 'left' || imgPos === 'right') ? `outside-${imgPos}` : '';
+      let markup = '';
+      if (styleClass === 'split') {
+        markup = `<article class="content-section-card split ${animationClass} ${outsideClass} ${bgClass}">${imgUrl ? imageHtml : ''}${contentHtml}</article>`;
+      } else if (styleClass === 'highlight') {
+        markup = `<article class="content-section-card highlight ${animationClass} ${outsideClass} ${bgClass}">${contentHtml}${imgUrl ? imageHtml : ''}</article>`;
+      } else {
+        // card style: if image_position is outside, render flex with image outside
+        if (outsideClass) {
+          // place image next to the card body
+          const imgBlock = `<div class="outside-media">${imageHtml}</div>`;
+          if (imgPos === 'left') {
+            markup = `<article class="content-section-card card ${animationClass} outside-left ${bgClass}"><div class="outside-wrap">${imgBlock}<div class="inside-wrap">${contentHtml}</div></div></article>`;
+          } else {
+            markup = `<article class="content-section-card card ${animationClass} outside-right ${bgClass}"><div class="outside-wrap">${contentHtml}${imgBlock}</div></article>`;
+          }
+        } else {
+          markup = `<article class="content-section-card card ${animationClass} ${bgClass}">${imageHtml}${contentHtml}</article>`;
+        }
+      }
+
+      return markup;
+    }).join('');
+  }
 
   // ── QUOTE SECTION (leftover description text + business link) ──
   const leftoverSentences = storySentences.slice(storyImgs.length);
