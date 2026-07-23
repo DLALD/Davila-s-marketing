@@ -67,8 +67,43 @@ async function loadProductos() {
     return;
   }
 
-  select.innerHTML = '<option value="">— Ninguno —</option>' +
+  select.innerHTML = '<option value="">— Seleccionar —</option>' +
     productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+}
+
+// ── CARGAR NEGOCIOS ──
+async function loadNegocios() {
+  const select = document.getElementById('slideNegocio');
+  if (!select) return;
+
+  const { data: negocios, error } = await supabase
+    .from('negocios')
+    .select('id, name')
+    .eq('status', 'active')
+    .order('name');
+
+  if (error) {
+    console.error('Error loading negocios:', error);
+    return;
+  }
+
+  select.innerHTML = '<option value="">— Seleccionar —</option>' +
+    negocios.map(n => `<option value="${n.id}">${n.name}</option>`).join('');
+}
+
+// ── MOSTRAR/OCULTAR CAMPOS SEGÚN TIPO ──
+function setupLinkTypeToggle() {
+  const linkType = document.getElementById('slideLinkType');
+  const productoGroup = document.getElementById('slideProductoGroup');
+  const negocioGroup = document.getElementById('slideNegocioGroup');
+  const customGroup = document.getElementById('slideCustomLinkGroup');
+
+  linkType.addEventListener('change', function() {
+    const val = this.value;
+    productoGroup.style.display = val === 'producto' ? 'block' : 'none';
+    negocioGroup.style.display = val === 'negocio' ? 'block' : 'none';
+    customGroup.style.display = val === 'custom' ? 'block' : 'none';
+  });
 }
 
 // ── CARGAR SLIDES ──
@@ -101,9 +136,10 @@ function renderSlidesList() {
   }
 
   container.innerHTML = slides.map(s => {
-    let asociacion = '';
+    let asociacion = '—';
     if (s.producto_id) asociacion = '🛍️ Producto';
-    else asociacion = '—';
+    else if (s.negocio_id) asociacion = '🏢 Negocio';
+    else if (s.link_info) asociacion = '🔗 Link personalizado';
 
     return `
     <div class="slide-card">
@@ -120,6 +156,7 @@ function renderSlidesList() {
           <span class="badge-link">${asociacion}</span>
           <span style="margin-left:8px;opacity:0.5;">Orden: ${s.orden || 0}</span>
           ${s.activo !== false ? '<span style="color:var(--green);margin-left:8px;">● Activo</span>' : '<span style="color:var(--danger);margin-left:8px;">● Inactivo</span>'}
+          ${s.link_compra ? '<span style="margin-left:8px;opacity:0.5;">🛒 con compra</span>' : ''}
         </div>
       </div>
       <div class="slide-card-actions">
@@ -147,7 +184,23 @@ function showSlideForm(slide = null) {
     document.getElementById('slideTextoCompra').value = slide.texto_boton_compra || 'Comprar →';
     document.getElementById('slideTextoInfo').value = slide.texto_boton_info || 'Más información';
     document.getElementById('slideColorTexto').value = slide.color_texto || '#ffffff';
-    document.getElementById('slideProducto').value = slide.producto_id || '';
+    document.getElementById('slideCustomLink').value = slide.link_info || '';
+
+    // Determinar tipo de enlace
+    const linkType = document.getElementById('slideLinkType');
+    if (slide.producto_id) {
+      linkType.value = 'producto';
+      document.getElementById('slideProducto').value = slide.producto_id;
+    } else if (slide.negocio_id) {
+      linkType.value = 'negocio';
+      document.getElementById('slideNegocio').value = slide.negocio_id;
+    } else if (slide.link_info) {
+      linkType.value = 'custom';
+      document.getElementById('slideCustomLink').value = slide.link_info;
+    } else {
+      linkType.value = 'none';
+    }
+    linkType.dispatchEvent(new Event('change'));
 
     if (slide.imagen) {
       document.getElementById('slideImagenPreview').innerHTML = `<img src="${slide.imagen}" />`;
@@ -176,6 +229,10 @@ function showSlideForm(slide = null) {
     document.getElementById('slideTextoInfo').value = 'Más información';
     document.getElementById('slideColorTexto').value = '#ffffff';
     document.getElementById('slideProducto').value = '';
+    document.getElementById('slideNegocio').value = '';
+    document.getElementById('slideCustomLink').value = '';
+    document.getElementById('slideLinkType').value = 'none';
+    document.getElementById('slideLinkType').dispatchEvent(new Event('change'));
     document.getElementById('slideImagenPreview').innerHTML = '';
     document.getElementById('slideImagen').value = '';
     document.getElementById('slideImagenMobilePreview').innerHTML = '';
@@ -209,16 +266,38 @@ async function saveSlide() {
     return;
   }
 
+  // Determinar el tipo de enlace
+  const linkType = document.getElementById('slideLinkType').value;
+  let producto_id = null;
+  let negocio_id = null;
+  let link_info = null;
+
+  switch (linkType) {
+    case 'producto':
+      producto_id = document.getElementById('slideProducto').value || null;
+      break;
+    case 'negocio':
+      negocio_id = document.getElementById('slideNegocio').value || null;
+      break;
+    case 'custom':
+      link_info = document.getElementById('slideCustomLink').value.trim() || null;
+      break;
+    default:
+      break;
+  }
+
   const slideData = {
     orden: parseInt(document.getElementById('slideOrden').value) || 0,
     titulo: titulo,
     subtitulo: document.getElementById('slideSubtitulo').value.trim(),
     badge: document.getElementById('slideBadge').value.trim(),
     descripcion: document.getElementById('slideDescripcion').value.trim(),
-    link_compra: document.getElementById('slideLinkCompra').value.trim(),
+    link_compra: document.getElementById('slideLinkCompra').value.trim() || null,
     texto_boton_compra: document.getElementById('slideTextoCompra').value.trim() || 'Comprar →',
     texto_boton_info: document.getElementById('slideTextoInfo').value.trim() || 'Más información',
-    producto_id: document.getElementById('slideProducto').value || null,
+    producto_id: producto_id,
+    negocio_id: negocio_id,
+    link_info: link_info,
     color_texto: document.getElementById('slideColorTexto').value || '#ffffff',
     imagen: imagen,
     imagen_mobile: document.getElementById('slideImagenMobile').value.trim() || null,
@@ -315,6 +394,9 @@ document.getElementById('slideImagenMobileFile')?.addEventListener('change', asy
   }
 });
 
+// Configurar toggle de tipo de enlace
+setupLinkTypeToggle();
+
 // Botones
 document.getElementById('btnAddSlide')?.addEventListener('click', () => showSlideForm(null));
 document.getElementById('slideCancelBtn')?.addEventListener('click', hideSlideForm);
@@ -322,4 +404,5 @@ document.getElementById('slideSaveBtn')?.addEventListener('click', saveSlide);
 
 // ── INIT ──
 loadProductos();
+loadNegocios();
 loadSlides();

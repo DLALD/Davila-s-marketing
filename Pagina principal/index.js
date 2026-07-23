@@ -203,9 +203,13 @@ async function loadCarousel() {
   track.innerHTML = slides.map((slide, index) => {
     const color = slide.color_texto || '#ffffff';
     const bgImage = slide.imagen_mobile || slide.imagen || '';
+    
+    // 🔥 DETERMINAR EL LINK DE "MÁS INFORMACIÓN"
     let linkInfo = '#';
     if (slide.producto_id) {
       linkInfo = `../productos/producto.html?id=${slide.producto_id}`;
+    } else if (slide.negocio_id) {
+      linkInfo = `../negocios/negocio.html?id=${slide.negocio_id}`;
     } else if (slide.link_info) {
       linkInfo = slide.link_info;
     }
