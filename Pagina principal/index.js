@@ -105,7 +105,6 @@ async function loadClients() {
       ? `<img src="${c.logo_url}" alt="${c.nombre}" style="height:40px;object-fit:contain;opacity:.7;" />`
       : `<span class="client-logo">${c.nombre}</span>`
   ).join('');
-  // duplicate for infinite scroll effect
   track.innerHTML = items + items;
 }
 
@@ -179,9 +178,150 @@ document.getElementById('hamburger').addEventListener('click', () => {
 });
 
 // =============================================
+// CARRUSEL ESTILO XIAOMI
+// =============================================
+
+async function loadCarousel() {
+  console.log('🔄 Cargando carrusel...');
+  const track = document.getElementById('carouselTrack');
+  const dotsContainer = document.getElementById('carouselDots');
+
+  const { data: slides, error } = await db
+    .from('carrusel_slides')
+    .select('*')
+    .eq('activo', true)
+    .order('orden', { ascending: true });
+
+  console.log('📊 Slides cargados:', slides);
+  console.log('❌ Error:', error);
+
+  if (error || !slides || !slides.length) {
+    showDefaultSlide();
+    return;
+  }
+
+  track.innerHTML = slides.map((slide, index) => {
+    const color = slide.color_texto || '#ffffff';
+    const bgImage = slide.imagen_mobile || slide.imagen || '';
+    let linkInfo = '#';
+    if (slide.producto_id) {
+      linkInfo = `../productos/producto.html?id=${slide.producto_id}`;
+    } else if (slide.link_info) {
+      linkInfo = slide.link_info;
+    }
+
+    return `
+    <div class="carousel-slide" data-index="${index}" style="background-image: url('${bgImage}');">
+      <div class="slide-overlay"></div>
+      <div class="slide-content" style="color: ${color};">
+        ${slide.badge ? `<span class="slide-badge">${slide.badge}</span>` : ''}
+        ${slide.subtitulo ? `<span class="slide-eyebrow">${slide.subtitulo}</span>` : ''}
+        <h2 class="slide-title">${slide.titulo || ''}</h2>
+        ${slide.descripcion ? `<p class="slide-description">${slide.descripcion}</p>` : ''}
+        <div class="slide-buttons">
+          ${slide.link_compra ? `<a href="${slide.link_compra}" class="btn-primary-carousel" target="_blank">${slide.texto_boton_compra || 'Comprar →'}</a>` : ''}
+          ${linkInfo !== '#' ? `<a href="${linkInfo}" class="btn-ghost-carousel">${slide.texto_boton_info || 'Más información'}</a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  dotsContainer.innerHTML = slides.map((_, i) =>
+    `<button class="dot" data-index="${i}" aria-label="Slide ${i+1}"></button>`
+  ).join('');
+
+  initCarousel(slides.length);
+}
+
+function showDefaultSlide() {
+  const track = document.getElementById('carouselTrack');
+  const dotsContainer = document.getElementById('carouselDots');
+
+  track.innerHTML = `
+    <div class="carousel-slide active" style="background: linear-gradient(135deg, #0d1a35, #1a2d4a);">
+      <div class="slide-overlay"></div>
+      <div class="slide-content" style="color: #ffffff;">
+        <span class="slide-eyebrow">Bienvenido</span>
+        <h2 class="slide-title">DAVILA'S<br>Marketing</h2>
+        <p class="slide-description">Estrategias digitales efectivas para tu negocio</p>
+        <div class="slide-buttons">
+          <a href="#contact" class="btn-primary-carousel">Contáctanos →</a>
+          <a href="#services" class="btn-ghost-carousel">Nuestros servicios</a>
+        </div>
+      </div>
+    </div>
+  `;
+  dotsContainer.innerHTML = '<button class="dot active" data-index="0"></button>';
+  initCarousel(1);
+}
+
+function initCarousel(totalSlides) {
+  const track = document.getElementById('carouselTrack');
+  const dots = document.querySelectorAll('.dot');
+  const prevBtn = document.getElementById('carouselPrev');
+  const nextBtn = document.getElementById('carouselNext');
+
+  if (totalSlides <= 1) {
+    document.querySelectorAll('.carousel-btn').forEach(el => el.style.display = 'none');
+    document.getElementById('carouselDots').style.display = 'none';
+    return;
+  }
+
+  let currentIndex = 0;
+  let intervalId = null;
+  const AUTOPLAY_DELAY = 5000;
+
+  function goToSlide(index) {
+    if (index < 0) index = totalSlides - 1;
+    if (index >= totalSlides) index = 0;
+    currentIndex = index;
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === currentIndex);
+    });
+    document.querySelectorAll('.carousel-slide').forEach((slide, i) => {
+      slide.classList.toggle('active', i === currentIndex);
+    });
+  }
+
+  function nextSlide() { goToSlide(currentIndex + 1); }
+  function prevSlide() { goToSlide(currentIndex - 1); }
+
+  function startAutoplay() {
+    if (intervalId) clearInterval(intervalId);
+    if (totalSlides <= 1) return;
+    intervalId = setInterval(nextSlide, AUTOPLAY_DELAY);
+  }
+
+  function stopAutoplay() {
+    if (intervalId) { clearInterval(intervalId); intervalId = null; }
+  }
+
+  prevBtn.addEventListener('click', () => { stopAutoplay(); prevSlide(); startAutoplay(); });
+  nextBtn.addEventListener('click', () => { stopAutoplay(); nextSlide(); startAutoplay(); });
+
+  dots.forEach((dot, index) => {
+    dot.addEventListener('click', () => { stopAutoplay(); goToSlide(index); startAutoplay(); });
+  });
+
+  const carousel = document.getElementById('xiaomiCarousel');
+  carousel.addEventListener('mouseenter', stopAutoplay);
+  carousel.addEventListener('mouseleave', startAutoplay);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') { stopAutoplay(); prevSlide(); startAutoplay(); }
+    else if (e.key === 'ArrowRight') { stopAutoplay(); nextSlide(); startAutoplay(); }
+  });
+
+  goToSlide(0);
+  startAutoplay();
+}
+
+// =============================================
 // INIT
 // =============================================
 renderTesti();
 loadClients();
 loadBusinesses();
+loadCarousel();
 loadArticles();

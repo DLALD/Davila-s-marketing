@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Carrusel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+  <style>
+    /* Estilos adicionales para el carrusel */
+    .slide-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .slide-card:hover { border-color: var(--blue); }
+    .slide-card-img {
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .slide-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .slide-card-img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+    }
+    .slide-card-body { flex: 1; min-width: 0; }
+    .slide-card-body .title { font-weight: 700; font-size: 0.9rem; }
+    .slide-card-body .meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .slide-card-body .badge-link {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 10px;
+      background: rgba(74,159,255,.1);
+      border-radius: 12px;
+      color: var(--blue);
+      font-size: 0.7rem;
+    }
+    .slide-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .slide-card-actions .btn-edit,
+    .slide-card-actions .btn-delete {
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .slide-card-actions .btn-edit {
+      border: 1px solid var(--blue);
+      color: var(--blue);
+      background: none;
+      font-weight: 700;
+    }
+    .slide-card-actions .btn-edit:hover {
+      background: var(--blue);
+      color: var(--white);
+    }
+    .slide-card-actions .btn-delete {
+      border: 1px solid #fca5a5;
+      color: var(--danger);
+      background: none;
+      font-weight: 700;
+    }
+    .slide-card-actions .btn-delete:hover {
+      background: var(--danger);
+      color: var(--white);
+      border-color: var(--danger);
+    }
+    .slide-form-container {
+      display: none;
+      margin-top: 16px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.03);
+    }
+    .slide-form-container.visible { display: block; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    @media (max-width: 768px) {
+      .form-row-3 { grid-template-columns: 1fr; }
+      .slide-card { flex-wrap: wrap; }
+      .slide-card-actions { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-main">DAVILA'S</span>
+      <span class="logo-sub">Admin Panel</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="admin.html" class="nav-item">🏢 Businesses</a>
+      <a href="admin-productos.html" class="nav-item">🛍️ Products</a>
+      <a href="admin-carrusel.html" class="nav-item active">🎠 Carrusel</a>
+      <a href="../Pagina principal/index.html" class="nav-item" target="_blank">🌐 View Site</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1>🎠 Carrusel</h1>
+      <button class="btn-add" id="btnAddSlide">+ Agregar Slide</button>
+    </header>
+
+    <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:16px;">
+      Administra los slides que aparecen en el carrusel de la página principal.
+      Puedes asociar cada slide a un producto para el botón "Más información".
+    </p>
+
+    <!-- Lista de slides -->
+    <div id="slidesList"></div>
+
+    <!-- Formulario de slide -->
+    <div class="slide-form-container" id="slideFormContainer">
+      <h4 id="slideFormTitle" style="margin-bottom:12px;">Agregar Slide</h4>
+      <input type="hidden" id="slideEditId" value="" />
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Orden</label>
+          <input type="number" id="slideOrden" value="0" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Activo</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="slideActivo" value="true" checked /> Sí
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="slideActivo" value="false" /> No
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Imagen principal *</label>
+          <input type="file" id="slideImagenFile" accept="image/*" />
+          <div class="img-preview" id="slideImagenPreview"></div>
+          <input type="hidden" id="slideImagen" />
+        </div>
+        <div class="form-group">
+          <label>Imagen para móvil</label>
+          <input type="file" id="slideImagenMobileFile" accept="image/*" />
+          <div class="img-preview" id="slideImagenMobilePreview"></div>
+          <input type="hidden" id="slideImagenMobile" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" id="slideTitulo" placeholder="Ej: Xiaomi 17T" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Subtítulo</label>
+          <input type="text" id="slideSubtitulo" placeholder="Ej: NUEVO, OFERTA" />
+        </div>
+        <div class="form-group">
+          <label>Badge</label>
+          <input type="text" id="slideBadge" placeholder="Ej: Telefoto Máster" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="slideDescripcion" rows="3" placeholder="Descripción corta del producto..."></textarea>
+      </div>
+
+      <div class="form-section-title">🔗 Asociar a Producto</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Producto asociado <span class="hint">para el botón "Más información"</span></label>
+          <div class="select-wrapper">
+            <select id="slideProducto">
+              <option value="">— Ninguno —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Link de compra</label>
+          <input type="url" id="slideLinkCompra" placeholder="https://tienda.com/producto" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Texto botón compra</label>
+          <input type="text" id="slideTextoCompra" value="Comprar →" />
+        </div>
+        <div class="form-group">
+          <label>Texto botón información</label>
+          <input type="text" id="slideTextoInfo" value="Más información" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Color del texto</label>
+        <input type="color" id="slideColorTexto" value="#ffffff" />
+      </div>
+
+      <div class="form-actions" style="border-top:none;padding-top:0;margin-top:8px;">
+        <button type="button" class="btn-cancel" id="slideCancelBtn">Cancelar</button>
+        <button type="button" class="btn-save" id="slideSaveBtn">💾 Guardar Slide</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+      }
+    }
+  </script>
+  <script type="module" src="admin-carrusel.js"></script>
+</body>
+
+</html>

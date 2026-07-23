@@ -3,26 +3,34 @@
 // =============================================
 import { supabase } from './supabase-client.js';
 
-// ── SITE ICONS (carpeta "Logos de la pagina", hermana de /admin y /negocios) ──
+// ── SITE ICONS ──
 const ICONS_PATH = '../Logos de la pagina/';
 const SITE_ICONS = [
-  { key: 'apoyo',                label: 'Apoyo' },
-  { key: 'carro',                label: 'Carro' },
-  { key: 'comunicacion',         label: 'Comunicación' },
-  { key: 'conexion',             label: 'Conexión' },
-  { key: 'estadisticas',         label: 'Estadísticas' },
-  { key: 'flecha-hacia-arriba',  label: 'Flecha Arriba' },
-  { key: 'flecha-izquierda',     label: 'Flecha Izquierda' },
-  { key: 'lavado-de-coches',     label: 'Lavado de Coches' },
-  { key: 'llamada-telefonica',   label: 'Llamada Telefónica' },
-  { key: 'mapas-de-google',      label: 'Mapas de Google' },
+  { key: 'apoyo', label: 'Apoyo' },
+  { key: 'carro', label: 'Carro' },
+  { key: 'comunicacion', label: 'Comunicación' },
+  { key: 'conexion', label: 'Conexión' },
+  { key: 'estadisticas', label: 'Estadísticas' },
+  { key: 'flecha-hacia-arriba', label: 'Flecha Arriba' },
+  { key: 'flecha-izquierda', label: 'Flecha Izquierda' },
+  { key: 'lavado-de-coches', label: 'Lavado de Coches' },
+  { key: 'llamada-telefonica', label: 'Llamada Telefónica' },
+  { key: 'mapas-de-google', label: 'Mapas de Google' },
   { key: 'marcador-de-posicion', label: 'Marcador de Posición' },
-  { key: 'reloj',                label: 'Reloj' },
-  { key: 'spray',                label: 'Spray' },
+  { key: 'reloj', label: 'Reloj' },
+  { key: 'spray', label: 'Spray' },
 ];
 const SITE_ICON_KEYS = SITE_ICONS.map(i => i.key);
 function iconSrc(key) { return `${ICONS_PATH}${key}.png`; }
 function iconImg(key, alt = '') { return `<img src="${iconSrc(key)}" alt="${alt}" />`; }
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
 
 // ── TABS ──
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -50,7 +58,7 @@ document.getElementById('bizCardColor2').addEventListener('input', syncCardColor
 syncCardColorPreview();
 
 // ── CHAR COUNTER ──
-const descEl  = document.getElementById('bizDescription');
+const descEl = document.getElementById('bizDescription');
 const countEl = document.getElementById('descCount');
 descEl.addEventListener('input', () => {
   const n = descEl.value.length;
@@ -59,39 +67,27 @@ descEl.addEventListener('input', () => {
 });
 
 // ── HERO IMAGE UPLOAD ──
-document.getElementById('bizHeroFile').addEventListener('change', async function () {
-  const file = this.files[0];
-  if (!file) return;
-  const preview = document.getElementById('heroPreview');
-  preview.innerHTML = '<p style="color:#aaa;font-size:.8rem">Uploading...</p>';
-  const url = await uploadImage(file);
-  if (url) {
-    document.getElementById('bizHeroImage').value = url;
-    preview.innerHTML = `<img src="${url}" alt="Hero preview" />`;
-  } else {
-    preview.innerHTML = '<p style="color:#e53e3e;font-size:.8rem">Upload failed</p>';
-  }
-});
-
 async function compressImage(file) {
   const enabled = document.getElementById('compressEnabled')?.checked ?? true;
   if (!enabled) return file;
-  const maxW    = parseInt(document.getElementById('compressMaxW')?.value    || 1400, 10);
-  const quality = parseInt(document.getElementById('compressQuality')?.value || 82,   10) / 100;
+  const maxW = parseInt(document.getElementById('compressMaxW')?.value || 1400, 10);
+  const quality = parseInt(document.getElementById('compressQuality')?.value || 82, 10) / 100;
   return new Promise(resolve => {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
       const scale = Math.min(1, maxW / img.width);
-      const w = Math.round(img.width  * scale);
+      const w = Math.round(img.width * scale);
       const h = Math.round(img.height * scale);
       const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
+      canvas.width = w;
+      canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
     };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.onerror = () => { URL.revokeObjectURL(url);
+      resolve(file); };
     img.src = url;
   });
 }
@@ -106,6 +102,20 @@ async function uploadImage(file) {
   const { data: { publicUrl } } = supabase.storage.from('negocios-imagenes').getPublicUrl(path);
   return publicUrl;
 }
+
+document.getElementById('bizHeroFile').addEventListener('change', async function() {
+  const file = this.files[0];
+  if (!file) return;
+  const preview = document.getElementById('heroPreview');
+  preview.innerHTML = '<p style="color:#aaa;font-size:.8rem">Uploading...</p>';
+  const url = await uploadImage(file);
+  if (url) {
+    document.getElementById('bizHeroImage').value = url;
+    preview.innerHTML = `<img src="${url}" alt="Hero preview" />`;
+  } else {
+    preview.innerHTML = '<p style="color:#e53e3e;font-size:.8rem">Upload failed</p>';
+  }
+});
 
 document.getElementById('compressMaxW')?.addEventListener('input', e => {
   document.getElementById('compressMaxWVal').textContent = e.target.value + 'px';
@@ -126,7 +136,8 @@ function renderGalleryPreview() {
   document.getElementById('bizGallery').value = JSON.stringify(galleryUrls);
 }
 
-window.removeGalleryImg = (i) => { galleryUrls.splice(i, 1); renderGalleryPreview(); };
+window.removeGalleryImg = (i) => { galleryUrls.splice(i, 1);
+  renderGalleryPreview(); };
 
 document.getElementById('btnAddGallery').addEventListener('click', async () => {
   const files = document.getElementById('galleryFileInput').files;
@@ -152,8 +163,7 @@ function syncBusinessServices() {
   document.getElementById('bizServices').value = JSON.stringify([...serviceTags, ...contentSections]);
 }
 
-// Upload service image on file select
-document.getElementById('serviceImgFile').addEventListener('change', async function () {
+document.getElementById('serviceImgFile').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
   const status = document.getElementById('serviceImgStatus');
@@ -163,14 +173,12 @@ document.getElementById('serviceImgFile').addEventListener('change', async funct
   status.textContent = url ? '✓ Image ready' : '✗ Failed';
 });
 
-// Populate the icon dropdown with the real icon files (from "Logos de la pagina")
 const serviceIconDropdownEl = document.getElementById('serviceIconDropdown');
 serviceIconDropdownEl.innerHTML = SITE_ICONS.map(ic =>
   `<span data-icon="${ic.key}" title="${ic.label}">${iconImg(ic.key, ic.label)}</span>`
 ).join('');
 document.getElementById('serviceIconBtn').innerHTML = iconImg(selectedServiceIcon);
 
-// Icon picker toggle
 document.getElementById('serviceIconBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('serviceIconDropdown').classList.toggle('hidden');
@@ -196,7 +204,8 @@ function renderServiceTags() {
   syncBusinessServices();
 }
 
-window.removeTag = (i) => { serviceTags.splice(i, 1); renderServiceTags(); };
+window.removeTag = (i) => { serviceTags.splice(i, 1);
+  renderServiceTags(); };
 
 function addServiceTag() {
   const input = document.getElementById('serviceInput');
@@ -216,11 +225,12 @@ function addServiceTag() {
 }
 document.getElementById('btnAddService').addEventListener('click', addServiceTag);
 document.getElementById('serviceInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); addServiceTag(); }
+  if (e.key === 'Enter') { e.preventDefault();
+    addServiceTag(); }
 });
 
 // ── CONTENT SECTIONS ──
-document.getElementById('sectionImgFile').addEventListener('change', async function () {
+document.getElementById('sectionImgFile').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
   const preview = document.getElementById('sectionPreview');
@@ -244,7 +254,8 @@ function renderContentSections() {
   syncBusinessServices();
 }
 
-window.removeContentSection = (i) => { contentSections.splice(i, 1); renderContentSections(); };
+window.removeContentSection = (i) => { contentSections.splice(i, 1);
+  renderContentSections(); };
 
 function addContentSection() {
   const title = document.getElementById('sectionTitle').value.trim();
@@ -274,14 +285,14 @@ document.getElementById('btnAddContentSection').addEventListener('click', addCon
 let productTags = [];
 let pendingProductImageUrl = '';
 
-document.getElementById('productImgFile').addEventListener('change', async function () {
+document.getElementById('productImgFile').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
   const status = document.getElementById('productImgStatus');
   status.textContent = 'Uploading...';
   const url = await uploadImage(file);
   pendingProductImageUrl = url || '';
-  status.textContent = url ? '\u2713 Ready' : '\u2717 Failed';
+  status.textContent = url ? '✓ Ready' : '✗ Failed';
 });
 
 function renderProductTags() {
@@ -289,12 +300,13 @@ function renderProductTags() {
     <span class="service-tag">
       ${p.imagen_url ? `<img src="${p.imagen_url}" style="width:28px;height:28px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:4px" />` : ''}
       <strong>${p.nombre}</strong>${p.precio ? ` &mdash; ${p.precio}` : ''}
-      <button onclick="removeProduct(${i})">\u2715</button>
+      <button onclick="removeProduct(${i})">✕</button>
     </span>`).join('');
   document.getElementById('bizProducts').value = JSON.stringify(productTags);
 }
 
-window.removeProduct = (i) => { productTags.splice(i, 1); renderProductTags(); };
+window.removeProduct = (i) => { productTags.splice(i, 1);
+  renderProductTags(); };
 
 function addProduct() {
   const nombre = document.getElementById('productName').value.trim();
@@ -302,15 +314,15 @@ function addProduct() {
   const product = {
     nombre,
     descripcion: document.getElementById('productDesc').value.trim(),
-    precio:      document.getElementById('productPrice').value.trim(),
-    link:        document.getElementById('productLink').value.trim(),
-    imagen_url:  pendingProductImageUrl,
+    precio: document.getElementById('productPrice').value.trim(),
+    link: document.getElementById('productLink').value.trim(),
+    imagen_url: pendingProductImageUrl,
   };
   productTags.push(product);
-  document.getElementById('productName').value  = '';
-  document.getElementById('productDesc').value  = '';
+  document.getElementById('productName').value = '';
+  document.getElementById('productDesc').value = '';
   document.getElementById('productPrice').value = '';
-  document.getElementById('productLink').value  = '';
+  document.getElementById('productLink').value = '';
   document.getElementById('productImgFile').value = '';
   document.getElementById('productImgStatus').textContent = '';
   pendingProductImageUrl = '';
@@ -337,30 +349,32 @@ function renderReviews() {
 }
 
 function syncReviews() { document.getElementById('bizReviews').value = JSON.stringify(reviews); }
-window.removeReview = (i) => { reviews.splice(i, 1); renderReviews(); };
+window.removeReview = (i) => { reviews.splice(i, 1);
+  renderReviews(); };
 
 document.getElementById('btnAddReview').addEventListener('click', () => {
   reviews.push({ name: '', stars: 5, text: '' });
   renderReviews();
 });
 
-// Hero height inputs behavior
+// ── HERO SETTINGS ──
 const heroDesktopInput = document.getElementById('bizHeroHeightDesktop');
-const heroMobileInput  = document.getElementById('bizHeroHeightMobile');
+const heroMobileInput = document.getElementById('bizHeroHeightMobile');
 const heroWidthDesktopInput = document.getElementById('bizHeroWidthDesktop');
-const heroWidthMobileInput  = document.getElementById('bizHeroWidthMobile');
-const heroZoomInput         = document.getElementById('bizHeroZoom');
+const heroWidthMobileInput = document.getElementById('bizHeroWidthMobile');
+const heroZoomInput = document.getElementById('bizHeroZoom');
 
 function getHeroSettings() {
   return {
-    desktop:      parseInt(heroDesktopInput?.value || 620, 10),
-    mobile:       parseInt(heroMobileInput?.value  || 360, 10),
+    desktop: parseInt(heroDesktopInput?.value || 620, 10),
+    mobile: parseInt(heroMobileInput?.value || 360, 10),
     widthDesktop: parseInt(heroWidthDesktopInput?.value || 100, 10),
-    widthMobile:  parseInt(heroWidthMobileInput?.value  || 100, 10),
-    zoom:         parseInt(heroZoomInput?.value || 100, 10),
-    fit:          document.getElementById('bizHeroFit')?.value || 'cover',
+    widthMobile: parseInt(heroWidthMobileInput?.value || 100, 10),
+    zoom: parseInt(heroZoomInput?.value || 100, 10),
+    fit: document.getElementById('bizHeroFit')?.value || 'cover',
   };
 }
+
 function syncHeroSettings() {
   document.getElementById('bizHeroSettings').value = JSON.stringify(getHeroSettings());
 }
@@ -397,19 +411,19 @@ if (heroZoomInput) {
 }
 document.getElementById('bizHeroFit')?.addEventListener('change', syncHeroSettings);
 
-// ── SOCIAL NETWORKS (dynamic) ──
+// ── SOCIAL NETWORKS ──
 const SOCIAL_OPTIONS = [
-  { key: 'facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/...', logo: '../logos/facebook.png' },
+  { key: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/...', logo: '../logos/facebook.png' },
   { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...', logo: '../logos/instagram.png' },
-  { key: 'whatsapp',  label: 'WhatsApp',  placeholder: '+1 (234) 567-890', logo: '../logos/whatsapp.png' },
-  { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@...', logo: '../logos/tik-tok.png' },
-  { key: 'youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/...', logo: '../logos/youtube.png' },
-  { key: 'twitter',   label: 'X / Twitter', placeholder: 'https://x.com/...' },
-  { key: 'linkedin',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/...', logo: '../logos/linkedin.png' },
-  { key: 'snapchat',  label: 'Snapchat',  placeholder: 'https://snapchat.com/add/...', logo: '../logos/snapchat.png' },
+  { key: 'whatsapp', label: 'WhatsApp', placeholder: '+1 (234) 567-890', logo: '../logos/whatsapp.png' },
+  { key: 'tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@...', logo: '../logos/tik-tok.png' },
+  { key: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/...', logo: '../logos/youtube.png' },
+  { key: 'twitter', label: 'X / Twitter', placeholder: 'https://x.com/...' },
+  { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/...', logo: '../logos/linkedin.png' },
+  { key: 'snapchat', label: 'Snapchat', placeholder: 'https://snapchat.com/add/...', logo: '../logos/snapchat.png' },
   { key: 'pinterest', label: 'Pinterest', placeholder: 'https://pinterest.com/...' },
 ];
-let socials = {}; // { facebook: 'url', instagram: 'url', ... }
+let socials = {};
 
 function renderSocialPicker() {
   const picker = document.getElementById('socialPicker');
@@ -455,8 +469,9 @@ function renderSocials() {
 }
 
 function syncSocials() { document.getElementById('bizSocials').value = JSON.stringify(socials); }
-window.removeSocial = (key) => { delete socials[key]; renderSocials(); };
-document.getElementById('bizCategory').addEventListener('change', function () {
+window.removeSocial = (key) => { delete socials[key];
+  renderSocials(); };
+document.getElementById('bizCategory').addEventListener('change', function() {
   document.getElementById('bizCategoryCustom').style.display = this.value === 'Other' ? 'block' : 'none';
 });
 
@@ -467,15 +482,15 @@ function normalizeMapsUrl(raw) {
   if (srcMatch) url = srcMatch[1];
   url = url.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
   const makeEmbed = q => `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`;
-  const isEmbed  = u => u.includes('/maps/embed') || u.includes('output=embed');
+  const isEmbed = u => u.includes('/maps/embed') || u.includes('output=embed');
   if (!url || url.length < 8) return '';
   if (isEmbed(url)) return url;
   try {
     const p = new URL(url.startsWith('http') ? url : `https://${url}`);
-    if (p.searchParams.has('q'))    return makeEmbed(p.searchParams.get('q'));
-    if (p.searchParams.has('pb'))   return `https://www.google.com/maps/embed?pb=${p.searchParams.get('pb')}`;
+    if (p.searchParams.has('q')) return makeEmbed(p.searchParams.get('q'));
+    if (p.searchParams.has('pb')) return `https://www.google.com/maps/embed?pb=${p.searchParams.get('pb')}`;
     const place = p.pathname.match(/\/maps\/place\/([^\/]+)/);
-    if (place) return makeEmbed(decodeURIComponent(place[1].replace(/\+/g,' ')));
+    if (place) return makeEmbed(decodeURIComponent(place[1].replace(/\+/g, ' ')));
     const at = p.pathname.match(/@(-?\d+\.\d+,-?\d+\.\d+)/);
     if (at) return makeEmbed(at[1]);
     return makeEmbed(url);
@@ -484,19 +499,20 @@ function normalizeMapsUrl(raw) {
 
 (function() {
   let debounce;
-  document.getElementById('bizMapsUrl').addEventListener('input', function () {
+  document.getElementById('bizMapsUrl').addEventListener('input', function() {
     clearTimeout(debounce);
     debounce = setTimeout(() => {
       const src = normalizeMapsUrl(this.value);
-      const wrap  = document.getElementById('mapsPreviewWrap');
+      const wrap = document.getElementById('mapsPreviewWrap');
       const frame = document.getElementById('mapsPreviewFrame');
-      if (src) { frame.src = src; wrap.style.display = 'block'; }
-      else     { frame.src = '';  wrap.style.display = 'none';  }
+      if (src) { frame.src = src;
+        wrap.style.display = 'block'; } else { frame.src = '';
+        wrap.style.display = 'none'; }
     }, 800);
   });
 })();
 
-document.getElementById('bizLogoFile').addEventListener('change', async function () {
+document.getElementById('bizLogoFile').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
   const preview = document.getElementById('logoPreview');
@@ -511,7 +527,7 @@ document.getElementById('bizLogoFile').addEventListener('change', async function
   }
 });
 
-document.getElementById('bizLogoUrlInput').addEventListener('input', function () {
+document.getElementById('bizLogoUrlInput').addEventListener('input', function() {
   const value = this.value.trim();
   document.getElementById('bizLogoUrl').value = value;
   const preview = document.getElementById('logoPreview');
@@ -526,19 +542,21 @@ async function renderList() {
   const { data, error } = await supabase.from('negocios').select('*').order('created_at', { ascending: false });
 
   if (error) {
-    container.innerHTML = `<div class="empty-state"><span>❌</span>Error: ${error.message}<br><small style="opacity:.6">${error.details || error.hint || ''}</small></div>`;
+    container.innerHTML =
+      `<div class="empty-state"><span>❌</span>Error: ${error.message}<br><small style="opacity:.6">${error.details || error.hint || ''}</small></div>`;
     return;
   }
   if (!data.length) {
-    container.innerHTML = `<div class="empty-state"><span>🏢</span>No businesses yet. Click "+ Add Business" to get started.</div>`;
+    container.innerHTML =
+      `<div class="empty-state"><span>🏢</span>No businesses yet. Click "+ Add Business" to get started.</div>`;
     return;
   }
 
   container.innerHTML = data.map(b => `
     <div class="biz-admin-card">
-      ${b.hero_image
-        ? `<img class="biz-admin-card-img" src="${b.hero_image}" alt="${b.name}" onerror="this.style.display='none'" />`
-        : `<div class="biz-admin-card-img-placeholder">🏢</div>`}
+      ${b.hero_image ?
+        `<img class="biz-admin-card-img" src="${b.hero_image}" alt="${b.name}" onerror="this.style.display='none'" />` :
+        `<div class="biz-admin-card-img-placeholder">🏢</div>`}
       <div class="biz-admin-card-body">
         <span class="tag">${b.category || ''}</span>
         <h3>${b.name}</h3>
@@ -563,12 +581,21 @@ function openAdd() {
   document.getElementById('bizCardColor1').value = '#1a6fd4';
   document.getElementById('bizCardColor2').value = '#3a8fe8';
   syncCardColorPreview();
-  galleryUrls = []; renderGalleryPreview();
-  serviceTags = []; pendingServiceImageUrl = ''; renderServiceTags();
-  contentSections = []; pendingSectionImageUrl = ''; renderContentSections();
-  productTags = []; pendingProductImageUrl = ''; renderProductTags();
-  reviews = []; renderReviews();
-  socials = {}; renderSocials();
+  galleryUrls = [];
+  renderGalleryPreview();
+  serviceTags = [];
+  pendingServiceImageUrl = '';
+  renderServiceTags();
+  contentSections = [];
+  pendingSectionImageUrl = '';
+  renderContentSections();
+  productTags = [];
+  pendingProductImageUrl = '';
+  renderProductTags();
+  reviews = [];
+  renderReviews();
+  socials = {};
+  renderSocials();
   resetTabs();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -578,41 +605,38 @@ window.openEdit = async (id) => {
   if (error) { showToast('Error loading business'); return; }
 
   document.getElementById('modalTitle').textContent = 'Edit Business';
-  document.getElementById('bizIndex').value          = b.id;
-  document.getElementById('bizName').value           = b.name             || '';
-  document.getElementById('bizDescription').value    = b.description      || '';
-  document.getElementById('bizDescriptionFull').value= b.description_full || '';
-  document.getElementById('bizPhone').value          = b.phone            || '';
-  document.getElementById('bizEmail').value          = b.email            || '';
-  document.getElementById('bizAddress').value        = b.address          || '';
+  document.getElementById('bizIndex').value = b.id;
+  document.getElementById('bizName').value = b.name || '';
+  document.getElementById('bizDescription').value = b.description || '';
+  document.getElementById('bizDescriptionFull').value = b.description_full || '';
+  document.getElementById('bizPhone').value = b.phone || '';
+  document.getElementById('bizEmail').value = b.email || '';
+  document.getElementById('bizAddress').value = b.address || '';
   document.getElementById('bizMapsUrl').value = b.maps_url || '';
-  // maps preview
   const mapsPreviewSrc = normalizeMapsUrl(b.maps_url || '');
   const mapsWrap = document.getElementById('mapsPreviewWrap');
   const mapsFrame = document.getElementById('mapsPreviewFrame');
-  if (mapsPreviewSrc) { mapsFrame.src = mapsPreviewSrc; mapsWrap.style.display = 'block'; }
-  else                { mapsFrame.src = '';             mapsWrap.style.display = 'none';  }
-  document.getElementById('bizHours').value           = b.hours            || '';
-  document.getElementById('bizWebsite').value         = b.website          || '';
-  document.getElementById('bizLogoUrl').value         = b.logo_url        || '';
-  document.getElementById('bizLogoUrlInput').value    = b.logo_url        || '';
-  document.getElementById('bizHeroImage').value       = b.hero_image       || '';
+  if (mapsPreviewSrc) { mapsFrame.src = mapsPreviewSrc;
+    mapsWrap.style.display = 'block'; } else { mapsFrame.src = '';
+    mapsWrap.style.display = 'none'; }
+  document.getElementById('bizHours').value = b.hours || '';
+  document.getElementById('bizWebsite').value = b.website || '';
+  document.getElementById('bizLogoUrl').value = b.logo_url || '';
+  document.getElementById('bizLogoUrlInput').value = b.logo_url || '';
+  document.getElementById('bizHeroImage').value = b.hero_image || '';
   document.getElementById('bizCategoryCustom').style.display = 'none';
 
-  // Card colors
   const colors = b.card_color || {};
   document.getElementById('bizCardColor1').value = colors.c1 || '#1a6fd4';
   document.getElementById('bizCardColor2').value = colors.c2 || '#3a8fe8';
   syncCardColorPreview();
 
-  // Socials
   socials = b.socials ? JSON.parse(JSON.stringify(b.socials)) : {};
-  // migrate old fields if present
   if (!Object.keys(socials).length) {
-    if (b.facebook)  socials.facebook  = b.facebook;
+    if (b.facebook) socials.facebook = b.facebook;
     if (b.instagram) socials.instagram = b.instagram;
-    if (b.whatsapp)  socials.whatsapp  = b.whatsapp;
-    if (b.tiktok)    socials.tiktok    = b.tiktok;
+    if (b.whatsapp) socials.whatsapp = b.whatsapp;
+    if (b.tiktok) socials.tiktok = b.tiktok;
   }
   renderSocials();
 
@@ -628,14 +652,13 @@ window.openEdit = async (id) => {
 
   document.querySelectorAll('input[name="bizStatus"]').forEach(r => { r.checked = r.value === (b.status || 'active'); });
 
-  document.getElementById('heroPreview').innerHTML = b.hero_image
-    ? `<img src="${b.hero_image}" alt="Hero preview" />` : '';
+  document.getElementById('heroPreview').innerHTML = b.hero_image ?
+    `<img src="${b.hero_image}" alt="Hero preview" />` : '';
   document.getElementById('bizHeroFile').value = '';
-  document.getElementById('logoPreview').innerHTML = b.logo_url
-    ? `<img src="${b.logo_url}" alt="Logo preview" />` : '';
+  document.getElementById('logoPreview').innerHTML = b.logo_url ?
+    `<img src="${b.logo_url}" alt="Logo preview" />` : '';
   document.getElementById('bizLogoFile').value = '';
 
-  // hero settings (desktop/mobile height + width)
   const heroSettings = b.hero_settings || {};
   document.getElementById('bizHeroHeightDesktop').value = heroSettings.desktop || 620;
   document.getElementById('heroHeightDesktopVal').textContent = (heroSettings.desktop || 620) + 'px';
@@ -651,10 +674,11 @@ window.openEdit = async (id) => {
   if (fitEl) fitEl.value = heroSettings.fit || 'cover';
   document.getElementById('bizHeroSettings').value = JSON.stringify(heroSettings || {});
 
-  galleryUrls = b.gallery  || []; renderGalleryPreview();
-  const parsedServices = Array.isArray(b.services)
-    ? b.services
-    : (typeof b.services === 'string' ? JSON.parse(b.services) : []);
+  galleryUrls = b.gallery || [];
+  renderGalleryPreview();
+  const parsedServices = Array.isArray(b.services) ?
+    b.services :
+    (typeof b.services === 'string' ? JSON.parse(b.services) : []);
   serviceTags = [];
   contentSections = [];
   parsedServices.forEach(item => {
@@ -666,8 +690,11 @@ window.openEdit = async (id) => {
   });
   renderServiceTags();
   renderContentSections();
-  productTags = Array.isArray(b.products) ? JSON.parse(JSON.stringify(b.products)) : (typeof b.products === 'string' ? JSON.parse(b.products) : []); renderProductTags();
-  reviews     = b.reviews  ? JSON.parse(JSON.stringify(b.reviews)) : []; renderReviews();
+  productTags = Array.isArray(b.products) ? JSON.parse(JSON.stringify(b.products)) : (typeof b.products === 'string' ?
+    JSON.parse(b.products) : []);
+  renderProductTags();
+  reviews = b.reviews ? JSON.parse(JSON.stringify(b.reviews)) : [];
+  renderReviews();
 
   countEl.textContent = `${b.description?.length || 0} / 160`;
   resetTabs();
@@ -683,33 +710,35 @@ document.getElementById('bizForm').addEventListener('submit', async e => {
   renderContentSections();
   const id = document.getElementById('bizIndex').value;
   const catSelect = document.getElementById('bizCategory');
-  const category = catSelect.value === 'Other'
-    ? document.getElementById('bizCategoryCustom').value.trim()
-    : catSelect.value;
+  const category = catSelect.value === 'Other' ?
+    document.getElementById('bizCategoryCustom').value.trim() :
+    catSelect.value;
 
   const biz = {
-    name:             document.getElementById('bizName').value.trim(),
+    name: document.getElementById('bizName').value.trim(),
     category,
-    description:      document.getElementById('bizDescription').value.trim(),
+    description: document.getElementById('bizDescription').value.trim(),
     description_full: document.getElementById('bizDescriptionFull').value.trim(),
-    phone:            document.getElementById('bizPhone').value.trim(),
-    email:            document.getElementById('bizEmail').value.trim(),
-    address:          document.getElementById('bizAddress').value.trim(),
-    maps_url:         document.getElementById('bizMapsUrl').value.trim(),
-    hours:            document.getElementById('bizHours').value.trim(),
-    website:          document.getElementById('bizWebsite').value.trim(),
-    logo_url:         document.getElementById('bizLogoUrl').value.trim() || document.getElementById('bizLogoUrlInput').value.trim(),
-    socials:          socials,
-    hero_image:       document.getElementById('bizHeroImage').value.trim(),
-    hero_settings:    (() => {
-      try { return JSON.parse(document.getElementById('bizHeroSettings').value || '{}'); } catch(e) { return {}; }
+    phone: document.getElementById('bizPhone').value.trim(),
+    email: document.getElementById('bizEmail').value.trim(),
+    address: document.getElementById('bizAddress').value.trim(),
+    maps_url: document.getElementById('bizMapsUrl').value.trim(),
+    hours: document.getElementById('bizHours').value.trim(),
+    website: document.getElementById('bizWebsite').value.trim(),
+    logo_url: document.getElementById('bizLogoUrl').value.trim() || document.getElementById('bizLogoUrlInput').value
+    .trim(),
+    socials: socials,
+    hero_image: document.getElementById('bizHeroImage').value.trim(),
+    hero_settings: (() => {
+      try { return JSON.parse(document.getElementById('bizHeroSettings').value || '{}'); } catch (e) { return {}; }
     })(),
-    gallery:          galleryUrls,
-    services:         [...serviceTags, ...contentSections],
-    products:         productTags,
-    reviews:          reviews,
-    card_color:       { c1: document.getElementById('bizCardColor1').value, c2: document.getElementById('bizCardColor2').value },
-    status:           document.querySelector('input[name="bizStatus"]:checked')?.value || 'active',
+    gallery: galleryUrls,
+    services: [...serviceTags, ...contentSections],
+    products: productTags,
+    reviews: reviews,
+    card_color: { c1: document.getElementById('bizCardColor1').value, c2: document.getElementById('bizCardColor2')
+        .value },
+    status: document.querySelector('input[name="bizStatus"]:checked')?.value || 'active',
   };
 
   let error;
@@ -735,16 +764,6 @@ window.deleteBusiness = async (id) => {
   renderList();
   showToast('Business deleted');
 };
-
-// ── UTILS ──
-function slugify(str) { return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
 
 // ── EVENTS ──
 document.getElementById('btnAdd').addEventListener('click', openAdd);
