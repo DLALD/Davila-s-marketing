@@ -128,6 +128,8 @@ async function loadArticles() {
     by: "DAVILA'S MARKETING",
     link: `articulo.html?slug=${a.slug}`,
     created_at: a.created_at,
+    price: null,
+    desc: null,
   }));
 
   const products = (productsRes.data || []).map(p => ({
@@ -138,6 +140,7 @@ async function loadArticles() {
     desc: p.descripcion || '',
     link: `../productos/producto.html?id=${p.id}`,
     created_at: p.created_at,
+    by: '🛍️ PRODUCTO',
   }));
 
   const items = [...articles, ...products]
@@ -149,16 +152,38 @@ async function loadArticles() {
     return;
   }
 
-  grid.innerHTML = items.map(item => `
+  grid.innerHTML = items.map(item => {
+    let badgeHtml = '';
+    if (item.type === 'product') {
+      badgeHtml = `<span class="article-by">🛍️ PRODUCTO</span>`;
+    } else {
+      badgeHtml = `<span class="article-by">BY DAVILA'S MARKETING</span>`;
+    }
+
+    let priceHtml = '';
+    if (item.price) {
+      priceHtml = `<div class="product-price">${item.price}</div>`;
+    }
+
+    let descHtml = '';
+    if (item.desc) {
+      descHtml = `<p class="product-desc">${item.desc}</p>`;
+    }
+
+    const btnText = item.type === 'product' ? 'VER PRODUCTO →' : 'READ MORE →';
+
+    return `
     <div class="article-card">
       <img src="${item.image}" alt="${item.title}" loading="lazy" />
       <div class="article-card-body">
-        <p class="article-by">${item.type === 'product' ? '🛍️ PRODUCTO' : "BY DAVILA'S MARKETING"}${item.price ? ` &mdash; ${item.price}` : ''}</p>
+        ${badgeHtml}
         <h3>${item.title}</h3>
-        ${item.desc ? `<p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.desc}</p>` : ''}
-        <a href="${item.link}" class="article-link">${item.type === 'product' ? 'VER PRODUCTO →' : 'READ MORE →'}</a>
+        ${priceHtml}
+        ${descHtml}
+        <a href="${item.link}" class="article-link">${btnText}</a>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // =============================================
@@ -204,7 +229,6 @@ async function loadCarousel() {
     const color = slide.color_texto || '#ffffff';
     const bgImage = slide.imagen_mobile || slide.imagen || '';
     
-    // 🔥 DETERMINAR EL LINK DE "MÁS INFORMACIÓN"
     let linkInfo = '#';
     if (slide.producto_id) {
       linkInfo = `../productos/producto.html?id=${slide.producto_id}`;
@@ -231,7 +255,7 @@ async function loadCarousel() {
   }).join('');
 
   dotsContainer.innerHTML = slides.map((_, i) =>
-    `<button class="dot" data-index="${i}" aria-label="Slide ${i+1}"></button>`
+    `<button class="progress-dot" data-index="${i}" aria-label="Slide ${i+1}"></button>`
   ).join('');
 
   initCarousel(slides.length);
@@ -255,13 +279,13 @@ function showDefaultSlide() {
       </div>
     </div>
   `;
-  dotsContainer.innerHTML = '<button class="dot active" data-index="0"></button>';
+  dotsContainer.innerHTML = '<button class="progress-dot active" data-index="0"></button>';
   initCarousel(1);
 }
 
 function initCarousel(totalSlides) {
   const track = document.getElementById('carouselTrack');
-  const dots = document.querySelectorAll('.dot');
+  const dots = document.querySelectorAll('.progress-dot');
   const prevBtn = document.getElementById('carouselPrev');
   const nextBtn = document.getElementById('carouselNext');
 
@@ -301,8 +325,13 @@ function initCarousel(totalSlides) {
     if (intervalId) { clearInterval(intervalId); intervalId = null; }
   }
 
-  prevBtn.addEventListener('click', () => { stopAutoplay(); prevSlide(); startAutoplay(); });
-  nextBtn.addEventListener('click', () => { stopAutoplay(); nextSlide(); startAutoplay(); });
+  const newPrevBtn = prevBtn.cloneNode(true);
+  const newNextBtn = nextBtn.cloneNode(true);
+  prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+  nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+
+  newPrevBtn.addEventListener('click', () => { stopAutoplay(); prevSlide(); startAutoplay(); });
+  newNextBtn.addEventListener('click', () => { stopAutoplay(); nextSlide(); startAutoplay(); });
 
   dots.forEach((dot, index) => {
     dot.addEventListener('click', () => { stopAutoplay(); goToSlide(index); startAutoplay(); });
